@@ -1,0 +1,2190 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kennewick Man · The Ancient One · Indigenous Heritage Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<script>
+tailwind.config = { darkMode:'class', theme:{ extend:{
+  colors:{
+    leaf:{50:'#f0f7f0',100:'#dcebdc',200:'#b8d4b8',300:'#8bb88b',400:'#5c9a5c',500:'#3d7a3d',600:'#2d5e2d',700:'#1f451f',800:'#153015',900:'#0a1a0a'},
+    moss:{500:'#6b7f4a',600:'#556840',700:'#3f4f30'},
+    bark:{500:'#8b6b4a',600:'#6e5438',700:'#4f3c28'},
+    sand:{100:'#f5f0e6',200:'#e8dfd0',300:'#d4c8b0'},
+    ember:{500:'#c85a32',600:'#a0431e',700:'#7e3314'}
+  },
+  fontFamily:{ sans:['Inter','sans-serif'], serif:['Merriweather','serif'] }
+}}}
+</script>
+<style>
+body{
+  font-family:'Inter',sans-serif;
+  background:linear-gradient(180deg, #0a1a0a 0%, #153015 50%, #0a1a0a 100%);
+  background-attachment:fixed; color:#f5f0e6; overflow-x:hidden;
+  position:relative; font-size:15px; line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:''; position:fixed; inset:0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(61,122,61,.06) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(45,94,45,.05) 0%, transparent 40%);
+  pointer-events:none; z-index:0;
+}
+@keyframes sway{ 0%,100%{ transform:rotate(-2deg); } 50%{ transform:rotate(2deg); } }
+@keyframes pulseSoft{ 0%,100%{ opacity:.7; transform:scale(1); } 50%{ opacity:1; transform:scale(1.05); } }
+@keyframes fadeIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes hologramPulse{ 0%,100%{ opacity:.85; } 50%{ opacity:1; } }
+@keyframes smokeRise{
+  0%{ transform:translateY(0) scale(1); opacity:.4; }
+  100%{ transform:translateY(-30px) scale(1.5); opacity:0; }
+}
+.animate-sway{ animation:sway 6s ease-in-out infinite; }
+.animate-pulse-soft{ animation:pulseSoft 3s ease-in-out infinite; }
+.fade-in{ animation:fadeIn .5s ease; }
+
+.glass-panel{
+  background:rgba(21,48,21,.85); backdrop-filter:blur(12px) saturate(1.2);
+  border:1px solid rgba(139,184,139,.25);
+  box-shadow:0 8px 32px rgba(0,0,0,.4), inset 0 1px 0 rgba(245,240,230,.05);
+}
+.glass-card{
+  background:rgba(45,94,45,.5); backdrop-filter:blur(8px);
+  border:1px solid rgba(139,184,139,.3);
+  box-shadow:0 4px 16px rgba(0,0,0,.35); transition:all .3s ease;
+}
+.glass-card:hover{ border-color:rgba(139,184,139,.6); background:rgba(45,94,45,.65); }
+
+h1, h2, h3, .font-serif{ font-family:'Merriweather',serif; letter-spacing:.01em; font-weight:700; }
+::-webkit-scrollbar{ width:10px; }
+::-webkit-scrollbar-track{ background:#0a1a0a; }
+::-webkit-scrollbar-thumb{ background:#3d7a3d; border-radius:5px; }
+::-webkit-scrollbar-thumb:hover{ background:#5c9a5c; }
+canvas{ display:block; outline:none; }
+
+.leaf-marker{
+  width:36px;height:36px;border-radius:50%;
+  background:radial-gradient(circle, #8bb88b, #3d7a3d);
+  border:3px solid #f5f0e6;
+  box-shadow:0 0 16px rgba(139,184,139,.8);
+  cursor:pointer; display:flex;align-items:center;justify-content:center;
+  font-size:16px; transition:transform .25s ease;
+}
+.leaf-marker:hover{ transform:scale(1.2); }
+
+.user-pin-pulse{ animation:userPinPulse 1.5s ease-out infinite; }
+@keyframes userPinPulse{
+  0%{ box-shadow:0 0 0 0 rgba(139,184,139,.9); }
+  100%{ box-shadow:0 0 0 24px rgba(139,184,139,0); }
+}
+
+.site-popup .maplibregl-popup-content{
+  background:rgba(21,48,21,.98)!important;
+  border:1px solid rgba(139,184,139,.55)!important;
+  border-radius:12px!important;
+  padding:16px 18px!important;
+  box-shadow:0 10px 40px rgba(0,0,0,.7)!important;
+  font-family:'Inter',sans-serif; font-size:12px;
+}
+.site-popup .maplibregl-popup-tip{
+  border-top-color:rgba(21,48,21,.98)!important;
+  border-bottom-color:rgba(21,48,21,.98)!important;
+}
+.site-popup .maplibregl-popup-close-button{
+  color:#8bb88b!important; font-size:20px!important;
+  padding:2px 10px!important; background:transparent!important;
+}
+
+.btn-nature{
+  font-family:'Inter',sans-serif; font-weight:500;
+  letter-spacing:.02em; transition:all .25s ease; border-radius:10px;
+}
+.btn-nature:hover{ transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.4); }
+.btn-active{
+  background:linear-gradient(90deg, #3d7a3d, #5c9a5c)!important;
+  color:#f5f0e6!important; font-weight:600;
+  box-shadow:0 0 20px rgba(61,122,61,.5);
+}
+
+.respect-figure{
+  position:relative; border-radius:20px; overflow:hidden;
+  border:1px solid rgba(139,184,139,.3);
+  background:rgba(10,26,10,.6);
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+}
+.respect-figure img{ display:block; width:100%; height:auto; filter:sepia(.15) contrast(1.02); }
+.respect-figure figcaption{
+  background:rgba(10,26,10,.92); padding:12px 16px;
+  font-size:11px; color:#b8d4b8; line-height:1.55;
+  border-top:1px solid rgba(139,184,139,.25);
+}
+.respect-figure figcaption strong{ color:#f5f0e6; }
+
+.leaf-divider{
+  display:flex; align-items:center; justify-content:center;
+  gap:12px; margin:2rem 0; opacity:.5;
+}
+.leaf-divider .line{
+  flex:1; height:1px;
+  background:linear-gradient(90deg, transparent, #5c9a5c, transparent);
+}
+.leaf-divider i{ color:#8bb88b; font-size:14px; }
+
+.tab-content{ animation:fadeIn .4s ease; }
+
+.symbol-badge{
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(45,94,45,.4); border:1px solid rgba(139,184,139,.3);
+  border-radius:9999px; padding:6px 14px; font-size:12px;
+  color:#b8d4b8; transition:all .25s ease; cursor:pointer;
+}
+.symbol-badge:hover{
+  background:rgba(45,94,45,.8); border-color:rgba(139,184,139,.8);
+  transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.4);
+}
+.symbol-badge i{ color:#8bb88b; }
+
+.fact-card{ cursor:pointer; transition:all .3s ease; }
+.fact-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(139,184,139,.7)!important;
+  background:rgba(45,94,45,.7);
+  box-shadow:0 12px 32px rgba(0,0,0,.5), 0 0 20px rgba(139,184,139,.3);
+}
+.fact-card:hover .fact-arrow{ opacity:1; transform:translateX(0); }
+.fact-arrow{
+  opacity:0; transform:translateX(-6px);
+  transition:all .25s ease;
+  color:#8bb88b;
+}
+
+#holo-skeleton-container{
+  position:relative; width:100%; height:600px;
+  border-radius:20px; overflow:hidden;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(61,122,61,.15) 0%, rgba(10,26,10,.95) 70%),
+    repeating-linear-gradient(0deg, rgba(139,184,139,.03) 0px, rgba(139,184,139,.03) 1px, transparent 1px, transparent 3px);
+  border:1px solid rgba(139,184,139,.35);
+  box-shadow:inset 0 0 80px rgba(61,122,61,.2), 0 12px 40px rgba(0,0,0,.5);
+  cursor:grab;
+}
+#holo-skeleton-container:active{ cursor:grabbing; }
+#holo-skeleton-container::before{
+  content:''; position:absolute; inset:0;
+  background:
+    linear-gradient(90deg, rgba(139,184,139,.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(139,184,139,.06) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none; z-index:1;
+  animation:hologramPulse 4s ease-in-out infinite;
+}
+#holo-skeleton-container::after{
+  content:''; position:absolute;
+  left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, rgba(139,184,139,.7), transparent);
+  animation:scanline 6s linear infinite;
+  pointer-events:none; z-index:2;
+}
+@keyframes scanline{ 0%{ top:0; } 100%{ top:100%; } }
+#holo-skeleton-container canvas{ position:relative; z-index:3; }
+
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(10,26,10,.85);
+  backdrop-filter:blur(8px);
+  z-index:100;
+  display:none;
+  align-items:center; justify-content:center;
+  padding:20px;
+  animation:fadeIn .3s ease;
+}
+.modal-overlay.active{ display:flex; }
+.modal-content{
+  background:linear-gradient(160deg, rgba(21,48,21,.98), rgba(10,26,10,.98));
+  border:1px solid rgba(139,184,139,.4);
+  border-radius:24px;
+  max-width:800px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);
+  position:relative;
+}
+.modal-content img{
+  width:100%; height:280px;
+  object-fit:cover;
+  border-radius:24px 24px 0 0;
+}
+.modal-content .modal-body{ padding:24px 28px 28px; }
+.modal-close{
+  position:absolute;
+  top:16px; right:16px;
+  width:38px; height:38px;
+  border-radius:50%;
+  background:rgba(10,26,10,.85);
+  border:1px solid rgba(139,184,139,.5);
+  color:#b8d4b8;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+  transition:all .2s ease;
+  z-index:5;
+}
+.modal-close:hover{
+  background:rgba(200,90,50,.4);
+  color:#f5f0e6;
+  border-color:#c85a32;
+}
+
+.fact-modal-icon{
+  width:80px; height:80px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(139,184,139,.4), rgba(45,94,45,.3));
+  border:2px solid rgba(139,184,139,.5);
+  display:flex; align-items:center; justify-content:center;
+  font-size:38px;
+  margin:0 auto 20px;
+}
+
+/* === Land acknowledgement panel === */
+.ack-panel{
+  position:relative;
+  border-radius:20px;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(92,154,92,.25) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(45,94,45,.3) 0%, transparent 60%),
+    linear-gradient(180deg, #153015 0%, #0a1a0a 100%);
+  border:1px solid rgba(139,184,139,.35);
+  box-shadow:0 12px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(245,240,230,.05);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:100%;
+}
+.ack-panel .ack-body{
+  padding:28px 26px 22px;
+}
+.ack-panel .ack-footer{
+  padding:18px 26px 20px;
+  background:rgba(10,26,10,.65);
+  border-top:1px solid rgba(139,184,139,.2);
+}
+.ack-panel .ack-symbol{
+  width:52px; height:52px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(139,184,139,.45), rgba(45,94,45,.25));
+  border:1.5px solid rgba(139,184,139,.55);
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px;
+  margin-bottom:16px;
+}
+.ack-panel .ack-title{
+  font-family:'Merriweather',serif;
+  font-size:1.35rem;
+  color:#f5f0e6;
+  font-weight:700;
+  margin-bottom:12px;
+  letter-spacing:.01em;
+}
+.ack-panel p{
+  font-size:0.9rem;
+  line-height:1.75;
+  color:#dcebdc;
+  margin-bottom:12px;
+}
+.ack-panel .ack-list{
+  list-style:none;
+  padding:0;
+  margin:14px 0 0;
+}
+.ack-panel .ack-list li{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:0.85rem;
+  color:#b8d4b8;
+  line-height:1.55;
+  margin-bottom:8px;
+}
+.ack-panel .ack-list i{
+  color:#8bb88b;
+  margin-top:4px;
+  flex-shrink:0;
+}
+.ack-panel .ack-tribes{
+  font-size:0.78rem;
+  color:#8bb88b;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:6px;
+}
+.ack-panel .ack-credit{
+  font-size:0.72rem;
+  color:#6b7f4a;
+  font-style:italic;
+  line-height:1.5;
+  margin-top:6px;
+}
+
+@media (max-width:768px){
+  body{ font-size:14px; }
+  h1{ font-size:1.75rem; }
+  #holo-skeleton-container{ height:460px; }
+  .ack-panel .ack-body{ padding:22px 20px 18px; }
+  .ack-panel .ack-footer{ padding:14px 20px 16px; }
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- TOP BANNER -->
+<div class="relative z-[70] bg-gradient-to-r from-leaf-800 via-leaf-700 to-moss-700 text-sand-100 text-xs py-2.5 px-4 text-center font-medium border-b border-leaf-300/40 shadow-lg flex flex-wrap items-center justify-center gap-2">
+  <span class="bg-leaf-300 text-leaf-900 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">◈ Prototype</span>
+  <span class="hidden md:inline text-leaf-300/80">🌿</span>
+  <span>Asia Khan, Hon. BA (McMaster University)</span>
+  <span class="hidden md:inline text-leaf-300/80">🌿</span>
+  <span class="text-leaf-200 italic">Behavioral UX Researcher · Design Anthropology</span>
+</div>
+
+<!-- HEADER -->
+<header class="glass-panel sticky top-[36px] z-50 px-6 py-4 flex flex-wrap justify-between items-center border-b border-leaf-300/30">
+  <div class="flex items-center space-x-3">
+    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-leaf-500 to-moss-600 flex items-center justify-center shadow-lg animate-sway">
+      <i class="fa-solid fa-leaf text-sand-100 text-xl"></i>
+    </div>
+    <div>
+      <h1 class="font-serif font-bold text-lg md:text-xl text-sand-100">Kennewick Man · The Ancient One</h1>
+      <p class="text-xs text-leaf-200/80">8,500 years · Columbia River · Ancestor &amp; Teacher</p>
+    </div>
+  </div>
+  <nav class="flex flex-wrap items-center gap-2 mt-3 md:mt-0 text-xs">
+    <button onclick="switchTab('home')" id="nav-home" class="btn-nature px-3 py-2 bg-leaf-600 text-sand-100 font-medium shadow-md transition-all btn-active"><i class="fa-solid fa-home"></i> Home</button>
+    <button onclick="switchTab('discovery')" id="nav-discovery" class="btn-nature px-3 py-2 bg-leaf-800/80 hover:bg-leaf-700 text-sand-200 transition-all"><i class="fa-solid fa-magnifying-glass text-leaf-300"></i> Discovery</button>
+    <button onclick="switchTab('gis')" id="nav-gis" class="btn-nature px-3 py-2 bg-leaf-800/80 hover:bg-leaf-700 text-sand-200 transition-all"><i class="fa-solid fa-map-location-dot text-leaf-300"></i> GIS</button>
+    <button onclick="switchTab('artifact')" id="nav-artifact" class="btn-nature px-3 py-2 bg-leaf-800/80 hover:bg-leaf-700 text-sand-200 transition-all"><i class="fa-solid fa-bone text-leaf-300"></i> 3D Artifacts</button>
+    <button onclick="switchTab('dna')" id="nav-dna" class="btn-nature px-3 py-2 bg-leaf-800/80 hover:bg-leaf-700 text-sand-200 transition-all"><i class="fa-solid fa-dna text-leaf-300"></i> DNA</button>
+    <button onclick="switchTab('ritual')" id="nav-ritual" class="btn-nature px-3 py-2 bg-leaf-800/80 hover:bg-leaf-700 text-sand-200 transition-all"><i class="fa-solid fa-hands-praying text-leaf-300"></i> Culture</button>
+    <button onclick="switchTab('significance')" id="nav-significance" class="btn-nature px-3 py-2 bg-leaf-800/80 hover:bg-leaf-700 text-sand-200 transition-all"><i class="fa-solid fa-scroll text-leaf-300"></i> Legacy</button>
+  </nav>
+</header>
+
+<main class="flex-1 relative flex flex-col p-4 md:p-6 max-w-7xl mx-auto w-full z-10">
+
+<!-- ============ TAB: HOME ============ -->
+<section id="tab-home" class="flex-1 flex flex-col space-y-6 tab-content">
+
+  <div class="glass-panel p-6 rounded-3xl text-center border border-leaf-300/20">
+    <h2 class="font-serif font-bold text-2xl md:text-3xl text-sand-100 mb-3">
+      <i class="fa-solid fa-seedling text-leaf-300 mr-2"></i>
+      Welcome, Relatives
+    </h2>
+    <p class="text-sm text-leaf-100/90 max-w-3xl mx-auto leading-relaxed mb-5">
+      This space honors <strong>The Ancient One</strong> — known to science as Kennewick Man.
+      He is not an artifact or a specimen. He is an ancestor, a teacher, and a reminder that
+      Indigenous peoples have lived on this land since time immemorial.
+      He was repatriated and reburied in 2017 by the five claimant tribes.
+    </p>
+
+    <div class="flex flex-wrap justify-center gap-3 mt-4">
+      <button class="symbol-badge" onclick="openSymbolModal('cedar')">
+        <i class="fa-solid fa-tree"></i> Cedar — protection &amp; purification
+      </button>
+      <button class="symbol-badge" onclick="openSymbolModal('camas')">
+        <i class="fa-solid fa-seedling"></i> Camas — sacred first root
+      </button>
+      <button class="symbol-badge" onclick="openSymbolModal('bitterroot')">
+        <i class="fa-solid fa-leaf"></i> Bitterroot — gift from Creator
+      </button>
+      <button class="symbol-badge" onclick="openSymbolModal('salmon')">
+        <i class="fa-solid fa-fish"></i> Salmon — lifeline &amp; spiritual relative
+      </button>
+    </div>
+
+    <div class="leaf-divider">
+      <div class="line"></div>
+      <i class="fa-solid fa-leaf animate-sway"></i>
+      <i class="fa-solid fa-leaf animate-sway" style="animation-delay:.5s"></i>
+      <i class="fa-solid fa-leaf animate-sway" style="animation-delay:1s"></i>
+      <div class="line"></div>
+    </div>
+  </div>
+
+  <!-- HERO: Columbia River (bb.png) + Land Acknowledgement panel -->
+  <div class="glass-panel p-4 md:p-6 rounded-3xl border border-leaf-300/20">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+
+      <figure class="respect-figure">
+        <img src="bb.png"
+             alt="Columbia River at Columbia Park, Kennewick, Washington — the discovery site and homeland of the Ancient One."
+             loading="lazy"
+             onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 800 600%22><defs><linearGradient id=%22sky%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22><stop offset=%220%22 stop-color=%22%232a4854%22/><stop offset=%221%22 stop-color=%22%234a7c8c%22/></linearGradient><linearGradient id=%22water%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22><stop offset=%220%22 stop-color=%22%233a6270%22/><stop offset=%221%22 stop-color=%22%23153015%22/></linearGradient></defs><rect width=%22800%22 height=%22300%22 fill=%22url(%23sky)%22/><rect y=%22300%22 width=%22800%22 height=%22300%22 fill=%22url(%23water)%22/><path d=%22M0 300 Q200 280 400 300 Q600 320 800 300 L800 330 Q600 350 400 330 Q200 310 0 330 Z%22 fill=%22%238bb88b%22 opacity=%22.3%22/><path d=%22M100 260 Q150 240 200 260 Q250 280 300 260%22 fill=%22none%22 stroke=%22%233d7a3d%22 stroke-width=%222%22 opacity=%22.4%22/><path d=%22M500 250 Q550 235 600 250 Q650 265 700 250%22 fill=%22none%22 stroke=%22%233d7a3d%22 stroke-width=%222%22 opacity=%22.4%22/><text x=%22400%22 y=%22540%22 text-anchor=%22middle%22 fill=%22%23b8d4b8%22 font-family=%22Inter%22 font-size=%2218%22 font-weight=%22500%22>Columbia River · Kennewick, WA</text><text x=%22400%22 y=%22570%22 text-anchor=%22middle%22 fill=%22%238bb88b%22 font-family=%22Inter%22 font-size=%2213%22>Save your image as bb.png</text></svg>'">
+        <figcaption>
+          <strong>The Columbia River</strong> at Columbia Park, Kennewick, WA — the lifeline
+          of the Plateau peoples for millennia, and the homeland of the Ancient One.
+          <br><span class="text-leaf-300 text-[10px]">→ Save your image on Desktop as <code class="text-leaf-300">bb.png</code></span>
+        </figcaption>
+      </figure>
+
+      <!-- Living Land Acknowledgement panel — replaces the forensic reconstruction -->
+      <div class="ack-panel">
+        <div class="ack-body">
+          <div class="ack-symbol">
+            <i class="fa-solid fa-feather-pointed text-sand-100"></i>
+          </div>
+          <h3 class="ack-title">A Living Land Acknowledgement</h3>
+
+          <p>
+            This page is dedicated to <strong class="text-sand-100">The Ancient One</strong>,
+            an ancestor of the <strong class="text-sand-100">Confederated Tribes of the Colville
+            Reservation</strong>, the <strong class="text-sand-100">Nez Perce Tribe</strong>,
+            the <strong class="text-sand-100">Confederated Tribes of the Umatilla Indian
+            Reservation</strong>, the <strong class="text-sand-100">Confederated Tribes and
+            Bands of the Yakama Nation</strong>, and the <strong class="text-sand-100">Wanapum
+            People</strong>.
+          </p>
+
+          <p>
+            He was returned to the earth in <strong class="text-sand-100">2017</strong>
+            after twenty years of legal struggle. His reburial was an act of spiritual law,
+            not an archaeological event. Out of respect, this page does not display his
+            remains or his likeness.
+          </p>
+
+          <ul class="ack-list">
+            <li>
+              <i class="fa-solid fa-water"></i>
+              <span>The Columbia River is a relative — a provider, a spiritual being, and the ancestral lifeline of the Plateau peoples.</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-seedling"></i>
+              <span>Camas, bitterroot, and salmon are sacred foods that sustained generations since time immemorial.</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-tree"></i>
+              <span>Cedar carries prayers. Its smoke purifies, protects, and carries messages to the Creator.</span>
+            </li>
+            <li>
+              <i class="fa-solid fa-hands-praying"></i>
+              <span>His story is not ours to tell. It belongs to the tribes. This page only honors it.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ack-footer">
+          <div class="ack-tribes">Five Claimant Tribes</div>
+          <p class="text-xs text-leaf-100/90 leading-relaxed">
+            Colville · Nez Perce · Umatilla · Yakama · Wanapum
+          </p>
+          <div class="ack-credit">
+            This page follows the spirit of NAGPRA and the 2017 reburial. No photographs,
+            casts, scans, or depictions of the Ancient One's remains are shown.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOLOGRAPHIC 3D OSTEOLOGICAL DIAGRAM -->
+  <div class="glass-panel p-4 md:p-6 rounded-3xl border border-leaf-300/20">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
+      <div>
+        <h3 class="font-serif font-bold text-xl text-sand-100 flex items-center gap-2">
+          <i class="fa-solid fa-cube text-leaf-300"></i>
+          Educational Anatomical Reference · Not the Ancient One
+        </h3>
+        <p class="text-xs text-leaf-200/80 mt-1">
+          Drag to rotate · Scroll to zoom · Click any bone to learn more
+        </p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="toggleHoloAutoRotate()" id="holo-rotate-btn" class="btn-nature px-3 py-1.5 bg-leaf-700 hover:bg-leaf-600 text-xs text-sand-100">
+          <i class="fa-solid fa-rotate"></i> Pause Rotation
+        </button>
+        <button onclick="resetHoloView()" class="btn-nature px-3 py-1.5 bg-leaf-800 hover:bg-leaf-700 text-xs text-sand-200">
+          <i class="fa-solid fa-house"></i> Reset
+        </button>
+      </div>
+    </div>
+
+    <div id="holo-skeleton-container">
+      <div id="holo-skeleton" style="position:absolute; inset:0;"></div>
+    </div>
+
+    <p class="text-xs text-leaf-200/70 mt-3 text-center italic">
+      Generic human anatomical diagram — <strong class="text-leaf-300">not the Ancient One's remains</strong>.
+      Provided as an educational reference so visitors can understand the bones described on this page.
+      His actual remains were repatriated and reburied in 2017 and are not displayed anywhere.
+    </p>
+  </div>
+
+  <!-- QUICK FACTS -->
+  <div class="glass-panel p-4 md:p-6 rounded-3xl border border-leaf-300/20">
+    <h3 class="font-serif font-bold text-lg text-sand-100 mb-1 text-center">
+      <i class="fa-solid fa-circle-info text-leaf-300 mr-2"></i>
+      Key Facts · Click any card to learn more
+    </h3>
+    <p class="text-xs text-leaf-200/70 text-center mb-5 italic">
+      Plain-language explanations for everyone
+    </p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="glass-card fact-card p-4 rounded-2xl text-center" onclick="openFactModal('bones')">
+        <div class="text-4xl mb-2">🦴</div>
+        <div class="text-sm font-semibold text-sand-100">380+ Bones</div>
+        <div class="text-xs text-leaf-200/70">Recovered</div>
+        <div class="mt-2 flex items-center justify-center gap-1 text-xs fact-arrow">
+          Learn more <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+
+      <div class="glass-card fact-card p-4 rounded-2xl text-center" onclick="openFactModal('years')">
+        <div class="text-4xl mb-2">📅</div>
+        <div class="text-sm font-semibold text-sand-100">8,500 Years</div>
+        <div class="text-xs text-leaf-200/70">Radiocarbon dated</div>
+        <div class="mt-2 flex items-center justify-center gap-1 text-xs fact-arrow">
+          Learn more <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+
+      <div class="glass-card fact-card p-4 rounded-2xl text-center" onclick="openFactModal('river')">
+        <div class="text-4xl mb-2">🏞️</div>
+        <div class="text-sm font-semibold text-sand-100">Columbia River</div>
+        <div class="text-xs text-leaf-200/70">Kennewick, WA</div>
+        <div class="mt-2 flex items-center justify-center gap-1 text-xs fact-arrow">
+          Learn more <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+
+      <div class="glass-card fact-card p-4 rounded-2xl text-center" onclick="openFactModal('native')">
+        <div class="text-4xl mb-2">🧬</div>
+        <div class="text-sm font-semibold text-sand-100">Native American</div>
+        <div class="text-xs text-leaf-200/70">Confirmed by DNA</div>
+        <div class="mt-2 flex items-center justify-center gap-1 text-xs fact-arrow">
+          Learn more <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cultural Note -->
+  <div class="glass-panel p-6 rounded-3xl border-l-4 border-leaf-400 text-center">
+    <i class="fa-solid fa-quote-left text-leaf-300 text-2xl mb-3"></i>
+    <p class="text-sm text-sand-100 italic max-w-2xl mx-auto">
+      "We have always been here. Our stories, our laws, and our connection to this land go back to the beginning."
+    </p>
+    <p class="text-xs text-leaf-200/70 mt-2">— Tribal elder, Columbia Plateau</p>
+  </div>
+
+</section>
+
+<!-- ============ TAB: DISCOVERY ============ -->
+<section id="tab-discovery" class="flex-1 hidden flex-col space-y-4 tab-content">
+  <div class="glass-panel p-6 rounded-3xl">
+    <h2 class="text-xl font-serif font-semibold text-sand-100 flex items-center gap-2 mb-3">
+      <i class="fa-solid fa-magnifying-glass text-leaf-300"></i> Discovery · Who, What, Where, When, How
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <p class="text-sm text-leaf-100/90 leading-relaxed mb-4">
+          <strong class="text-leaf-300">Who:</strong> Two college students, Will Thomas and Dave Deacy, noticed a human skull in the mud while sneaking into hydroplane races along the Columbia River.
+        </p>
+        <p class="text-sm text-leaf-100/90 leading-relaxed mb-4">
+          <strong class="text-leaf-300">What:</strong> A nearly complete skeleton — one of the oldest and most complete ever found in North America, with <strong>over 380 bones and fragments</strong>.
+        </p>
+        <p class="text-sm text-leaf-100/90 leading-relaxed mb-4">
+          <strong class="text-leaf-300">Where:</strong> The shallows of the Columbia River, near Kennewick, Washington, on land managed by the US Army Corps of Engineers (Columbia Park).
+        </p>
+        <p class="text-sm text-leaf-100/90 leading-relaxed mb-4">
+          <strong class="text-leaf-300">When:</strong> Discovered on July 28, 1996. Radiocarbon dating placed the skeleton at approximately <strong>8,500 years old</strong>.
+        </p>
+        <p class="text-sm text-leaf-100/90 leading-relaxed">
+          <strong class="text-leaf-300">How:</strong> A local forensic anthropologist, James Chatters, recovered the skeleton and discovered a <strong>stone spearpoint embedded in the hip</strong>. The bone had healed around it — he survived the wound.
+        </p>
+      </div>
+      <div class="space-y-4">
+        <figure class="respect-figure">
+          <img src="cc.png"
+               alt="Cascade projectile point recovered from the right ilium of Kennewick Man — a stone artifact, not human remains."
+               loading="lazy"
+               onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 800 500%22><rect fill=%22%23153015%22 width=%22800%22 height=%22500%22/><defs><linearGradient id=%22stone%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%236a5a4a%22/><stop offset=%221%22 stop-color=%22%233a2e1f%22/></linearGradient></defs><path d=%22M400 90 L440 240 L470 380 L400 430 L330 380 L360 240 Z%22 fill=%22url(%23stone)%22 stroke=%22%23b8a888%22 stroke-width=%221.5%22/><text x=%22400%22 y=%22470%22 text-anchor=%22middle%22 fill=%22%23b8d4b8%22 font-family=%22Inter%22 font-size=%2218%22 font-weight=%22500%22>Cascade Spearpoint</text><text x=%22400%22 y=%22490%22 text-anchor=%22middle%22 fill=%22%238bb88b%22 font-family=%22Inter%22 font-size=%2212%22>Save as cc.png</text></svg>'">
+          <figcaption>
+            <strong>Cascade projectile point</strong> — a stone artifact, not human remains.
+            It was embedded in his right hip bone, and the bone healed around it — proof he survived the wound.
+            <br><span class="text-leaf-300 text-[10px]">→ Save the artifact photo as <code class="text-leaf-300">cc.png</code> next to your HTML file</span>
+          </figcaption>
+        </figure>
+
+        <div class="glass-card p-4 rounded-2xl">
+          <h4 class="text-sm font-semibold text-leaf-300 mb-2"><i class="fa-solid fa-clock"></i> Radiocarbon Dating</h4>
+          <p class="text-xs text-leaf-100/90 leading-relaxed">
+            Radiocarbon dating of a bone sample was performed at the University of California, Riverside.
+            Results placed the skeleton at <strong>8,340–9,200 calibrated years before present</strong>.
+          </p>
+        </div>
+        <div class="glass-card p-4 rounded-2xl">
+          <h4 class="text-sm font-semibold text-leaf-300 mb-2"><i class="fa-solid fa-book"></i> APA 7th References</h4>
+          <p class="text-xs text-sand-200/90 leading-relaxed italic">
+            Taylor, R. E., Kirner, D. L., Southon, J. R., &amp; Chatters, J. C. (1998). Radiocarbon dating of the Kennewick skeleton. <em>Current Research in the Pleistocene</em>, <em>15</em>, 131–133.
+          </p>
+          <p class="text-xs text-sand-200/90 leading-relaxed italic mt-2">
+            Chatters, J. C. (2001). <em>Ancient encounters: Kennewick Man and the first Americans</em>. Simon &amp; Schuster.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB: GIS ============ -->
+<section id="tab-gis" class="flex-1 hidden flex-col space-y-4 tab-content">
+  <div class="glass-panel p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+      <h2 class="text-lg font-serif font-semibold text-sand-100 flex items-center gap-2">
+        <i class="fa-solid fa-map-location-dot text-leaf-300"></i> Columbia River GIS · Kennewick, WA
+      </h2>
+      <p class="text-xs text-leaf-200/80">Aerial view · Click any leaf marker for site summaries with APA references.</p>
+    </div>
+    <div class="flex gap-2 flex-wrap items-center">
+      <button onclick="locateMe()" id="locate-btn" class="btn-nature px-3 py-1.5 bg-leaf-600 hover:bg-leaf-500 text-xs text-sand-100 font-semibold">
+        <i class="fa-solid fa-location-crosshairs"></i> Find Me
+      </button>
+    </div>
+  </div>
+
+  <!-- VIEW MODE TOOLBAR -->
+  <div class="glass-panel p-3 rounded-2xl flex flex-wrap items-center gap-2 border border-leaf-300/20">
+    <span class="text-xs text-leaf-300 font-semibold uppercase tracking-wide mr-2">
+      <i class="fa-solid fa-eye"></i> View Mode:
+    </span>
+    <button onclick="setViewMode('topdown')" id="view-topdown" class="btn-nature px-3 py-1.5 bg-leaf-700 hover:bg-leaf-600 text-xs text-sand-100">
+      <i class="fa-solid fa-satellite"></i> Top-Down Aerial
+    </button>
+    <button onclick="setViewMode('tilt')" id="view-tilt" class="btn-nature px-3 py-1.5 bg-leaf-600 text-sand-100 text-xs btn-active">
+      <i class="fa-solid fa-mountain-sun"></i> 3D Tilt
+    </button>
+    <button onclick="setViewMode('flyover')" id="view-flyover" class="btn-nature px-3 py-1.5 bg-leaf-700 hover:bg-leaf-600 text-xs text-sand-100">
+      <i class="fa-solid fa-plane"></i> Flyover
+    </button>
+    <button onclick="setViewMode('oblique')" id="view-oblique" class="btn-nature px-3 py-1.5 bg-leaf-700 hover:bg-leaf-600 text-xs text-sand-100">
+      <i class="fa-solid fa-binoculars"></i> Oblique
+    </button>
+    <span class="flex-1"></span>
+    <button onclick="setViewMode('reset')" class="btn-nature px-3 py-1.5 bg-leaf-800 hover:bg-leaf-700 text-xs text-sand-200">
+      <i class="fa-solid fa-house"></i> Reset
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+    <div class="lg:col-span-3 glass-panel rounded-2xl relative overflow-hidden border border-leaf-300/20 shadow-2xl" style="min-height:520px">
+      <div id="gis-map" style="position:absolute;inset:0"></div>
+
+      <!-- GIS WARNING -->
+      <div id="gis-warning" class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 md:p-10" style="display:none; background: linear-gradient(160deg, rgba(21,48,21,.98), rgba(10,26,10,.98));">
+        <i class="fa-solid fa-map-location-dot text-leaf-400 text-5xl mb-4"></i>
+        <h3 class="font-serif font-bold text-xl text-sand-100 mb-3">Interactive GIS needs a local server</h3>
+        <p class="text-sm text-leaf-100/90 max-w-lg leading-relaxed mb-5">
+          Browsers block live map tiles when opened from <code class="text-leaf-300">file://</code>.
+          Run a local server, host online, or use the static aerial map below.
+        </p>
+        <div class="w-full max-w-lg bg-leaf-900/70 rounded-xl border border-leaf-400/40 p-4 mb-3 text-left">
+          <p class="text-xs text-leaf-100/90 mb-2"><strong class="text-sand-100">Option 1 · Fastest</strong> — open a terminal in this folder and run:</p>
+          <div class="flex items-center gap-2">
+            <code id="server-cmd" class="flex-1 text-xs bg-leaf-900/90 px-3 py-2 rounded-lg border border-leaf-400/40 text-leaf-300 font-mono">python -m http.server 8000</code>
+            <button onclick="copyServerCmd()" id="copy-cmd-btn" class="btn-nature px-3 py-2 bg-leaf-600 hover:bg-leaf-500 text-xs text-sand-100 whitespace-nowrap">
+              <i class="fa-solid fa-copy"></i> Copy
+            </button>
+          </div>
+          <p class="text-xs text-leaf-200/80 mt-2">Then visit <span class="text-leaf-300 font-mono">http://localhost:8000</span></p>
+        </div>
+        <div class="w-full max-w-lg bg-leaf-900/70 rounded-xl border border-leaf-400/40 p-4 text-left">
+          <p class="text-xs text-leaf-100/90"><strong class="text-sand-100">Option 2 · Host online</strong> — GitHub Pages, Netlify, or Cloudflare Pages. Once online, GIS loads automatically.</p>
+        </div>
+      </div>
+
+      <!-- STATIC AERIAL FALLBACK MAP -->
+      <div id="gis-static-fallback" class="absolute inset-0" style="display:none; background:#0a1a0a; perspective:1200px;">
+        <div id="static-map-wrapper" style="width:100%; height:100%; transition: transform .8s cubic-bezier(.2,.7,.3,1); transform-style: preserve-3d;">
+          <svg id="static-map-svg" viewBox="0 0 800 620" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+            <defs>
+              <linearGradient id="riverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2a4854"/>
+                <stop offset="100%" stop-color="#4a7c8c"/>
+              </linearGradient>
+              <linearGradient id="aerialGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#2d5e2d"/>
+                <stop offset="50%" stop-color="#1f451f"/>
+                <stop offset="100%" stop-color="#0a1a0a"/>
+              </linearGradient>
+              <radialGradient id="markerGlow">
+                <stop offset="0%" stop-color="#8bb88b" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="#8bb88b" stop-opacity="0"/>
+              </radialGradient>
+              <pattern id="fieldPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <rect width="40" height="40" fill="#1a3a1a"/>
+                <path d="M 0 20 L 40 20 M 20 0 L 20 40" stroke="#2d5e2d" stroke-width="0.5" opacity="0.4"/>
+              </pattern>
+              <pattern id="urbanPattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+                <rect width="12" height="12" fill="#2a3a2a"/>
+                <rect x="2" y="2" width="3" height="3" fill="#3d5e3d" opacity="0.6"/>
+                <rect x="7" y="7" width="3" height="3" fill="#3d5e3d" opacity="0.6"/>
+              </pattern>
+            </defs>
+
+            <rect width="800" height="620" fill="url(#aerialGrad)"/>
+            <rect x="0" y="0" width="800" height="620" fill="url(#fieldPattern)" opacity="0.35"/>
+            <rect x="280" y="380" width="120" height="80" fill="url(#urbanPattern)" opacity="0.7" rx="6"/>
+
+            <ellipse cx="120" cy="100" rx="90" ry="60" fill="#0f2a0f" opacity="0.6"/>
+            <ellipse cx="680" cy="520" rx="100" ry="70" fill="#0f2a0f" opacity="0.6"/>
+            <ellipse cx="600" cy="140" rx="80" ry="50" fill="#0f2a0f" opacity="0.55"/>
+
+            <g stroke="#8bb88b" stroke-width="0.3" opacity="0.12">
+              <line x1="0" y1="100" x2="800" y2="100"/>
+              <line x1="0" y1="200" x2="800" y2="200"/>
+              <line x1="0" y1="300" x2="800" y2="300"/>
+              <line x1="0" y1="400" x2="800" y2="400"/>
+              <line x1="0" y1="500" x2="800" y2="500"/>
+              <line x1="100" y1="0" x2="100" y2="620"/>
+              <line x1="200" y1="0" x2="200" y2="620"/>
+              <line x1="300" y1="0" x2="300" y2="620"/>
+              <line x1="400" y1="0" x2="400" y2="620"/>
+              <line x1="500" y1="0" x2="500" y2="620"/>
+              <line x1="600" y1="0" x2="600" y2="620"/>
+              <line x1="700" y1="0" x2="700" y2="620"/>
+            </g>
+
+            <path d="M 0 380 Q 200 360 350 400 Q 500 440 650 420 Q 750 410 800 430 L 800 490 Q 700 470 600 480 Q 450 500 320 460 Q 180 420 0 440 Z"
+                  fill="url(#riverGrad)" stroke="#8bb88b" stroke-width="1.5" opacity="0.95"/>
+            <path d="M 200 400 Q 300 420 400 425" stroke="#dcebdc" stroke-width="1" opacity="0.4" fill="none"/>
+            <path d="M 500 440 Q 600 435 700 425" stroke="#dcebdc" stroke-width="1" opacity="0.35" fill="none"/>
+            <path d="M 500 220 Q 520 300 480 360 Q 460 390 440 405"
+                  fill="none" stroke="url(#riverGrad)" stroke-width="7" opacity="0.75" stroke-linecap="round"/>
+            <path d="M 720 180 Q 700 280 660 380 Q 640 410 630 420"
+                  fill="none" stroke="url(#riverGrad)" stroke-width="7" opacity="0.75" stroke-linecap="round"/>
+
+            <!-- MARKER 1 -->
+            <g transform="translate(340, 415)" style="cursor:pointer;" onclick="updateGIS(0)">
+              <circle r="40" fill="url(#markerGlow)" opacity="0.7"/>
+              <circle r="20" fill="#3d7a3d" stroke="#f5f0e6" stroke-width="3"/>
+              <text y="7" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="18" font-weight="700">🌿</text>
+              <text y="-50" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="13" font-weight="700" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Columbia Park</text>
+              <text y="-35" text-anchor="middle" fill="#b8d4b8" font-family="Inter" font-size="11" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Discovery Site</text>
+              <text y="45" text-anchor="middle" fill="#8bb88b" font-family="Inter" font-size="9" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">46.2215°N, 119.1630°W</text>
+            </g>
+
+            <!-- MARKER 2 -->
+            <g transform="translate(120, 180)" style="cursor:pointer;" onclick="updateGIS(1)">
+              <circle r="35" fill="url(#markerGlow)" opacity="0.6"/>
+              <circle r="17" fill="#2d5e2d" stroke="#f5f0e6" stroke-width="3"/>
+              <text y="6" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="16" font-weight="700">🏛</text>
+              <text y="-42" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="13" font-weight="700" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Burke Museum</text>
+              <text y="-27" text-anchor="middle" fill="#b8d4b8" font-family="Inter" font-size="11" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Seattle, WA</text>
+            </g>
+
+            <!-- MARKER 3 -->
+            <g transform="translate(620, 120)" style="cursor:pointer;" onclick="updateGIS(2)">
+              <circle r="35" fill="url(#markerGlow)" opacity="0.6"/>
+              <circle r="17" fill="#2d5e2d" stroke="#f5f0e6" stroke-width="3"/>
+              <text y="6" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="16" font-weight="700">🪶</text>
+              <text y="-42" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="13" font-weight="700" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Colville Reservation</text>
+              <text y="-27" text-anchor="middle" fill="#b8d4b8" font-family="Inter" font-size="11" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Claimant Tribe · Reburial 2017</text>
+            </g>
+
+            <g transform="translate(740, 560)">
+              <circle r="28" fill="rgba(21,48,21,0.9)" stroke="#8bb88b" stroke-width="1.5"/>
+              <path d="M 0 -18 L 5 0 L 0 18 L -5 0 Z" fill="#8bb88b"/>
+              <text y="-24" text-anchor="middle" fill="#b8d4b8" font-family="Inter" font-size="10" font-weight="700">N</text>
+            </g>
+
+            <g transform="translate(40, 560)">
+              <line x1="0" y1="0" x2="120" y2="0" stroke="#8bb88b" stroke-width="2"/>
+              <line x1="0" y1="-5" x2="0" y2="5" stroke="#8bb88b" stroke-width="2"/>
+              <line x1="120" y1="-5" x2="120" y2="5" stroke="#8bb88b" stroke-width="2"/>
+              <text x="60" y="-10" text-anchor="middle" fill="#b8d4b8" font-family="Inter" font-size="10">~100 km</text>
+            </g>
+
+            <text x="400" y="40" text-anchor="middle" fill="#f5f0e6" font-family="Merriweather" font-size="16" font-weight="700" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:4px;">Columbia River · Kennewick, WA</text>
+            <text x="400" y="58" text-anchor="middle" fill="#8bb88b" font-family="Inter" font-size="11" style="paint-order:stroke;stroke:#0a1a0a;stroke-width:3px;">Static aerial map · 3 key locations of the Ancient One</text>
+          </svg>
+        </div>
+      </div>
+
+      <div id="view-mode-indicator" class="absolute top-4 right-4 glass-card px-3 py-1.5 rounded-xl text-xs text-leaf-300 font-semibold border border-leaf-300/30 z-10">
+        <i class="fa-solid fa-mountain-sun"></i> <span id="view-mode-label">3D Tilt</span>
+      </div>
+
+      <div class="absolute bottom-4 left-4 glass-card px-4 py-2 rounded-xl text-xs pointer-events-none border border-leaf-300/20 z-10">
+        <i class="fa-solid fa-circle-info text-leaf-300"></i> Drag to pan · Scroll to zoom · Click marker
+      </div>
+    </div>
+
+    <div class="glass-panel p-5 rounded-2xl border border-leaf-300/20">
+      <div class="flex items-center justify-between pb-3 border-b border-leaf-300/20">
+        <h3 id="gis-site-title" class="font-serif font-bold text-leaf-300 text-base">Select Site</h3>
+        <span id="gis-site-culture" class="text-xs bg-leaf-700/60 text-leaf-200 px-2 py-0.5 rounded-full border border-leaf-300/30">Region</span>
+      </div>
+      <div class="mt-4 space-y-3 text-xs">
+        <p id="gis-site-desc" class="text-leaf-100/95 leading-relaxed">Click a marker on the map.</p>
+        <div class="bg-leaf-900/60 p-3 rounded-xl border border-leaf-300/20">
+          <span class="font-semibold text-leaf-300 block mb-1">Excavation Context:</span>
+          <p id="gis-site-context" class="text-leaf-100/90 leading-relaxed"></p>
+        </div>
+        <div class="bg-leaf-900/60 p-3 rounded-xl border border-leaf-300/20">
+          <span class="font-semibold text-leaf-300 block mb-1">Artifacts:</span>
+          <ul id="gis-site-artifacts" class="list-disc list-inside space-y-1 text-leaf-100/90"></ul>
+        </div>
+        <div class="bg-leaf-900/60 p-3 rounded-xl border border-leaf-300/20">
+          <span class="font-semibold text-leaf-300 block mb-1">Remains:</span>
+          <ul id="gis-site-flora" class="list-disc list-inside space-y-1 text-leaf-100/90"></ul>
+        </div>
+        <div class="bg-leaf-900/60 p-3 rounded-xl border border-leaf-300/20">
+          <span class="font-semibold text-leaf-300 block mb-1">Method:</span>
+          <p id="gis-site-method" class="text-leaf-100/90"></p>
+        </div>
+        <div class="bg-leaf-900/60 p-3 rounded-xl border border-leaf-300/20">
+          <span class="font-semibold text-leaf-300 block mb-1">Directors:</span>
+          <p id="gis-site-directors" class="text-leaf-100/90 leading-relaxed"></p>
+        </div>
+        <div class="bg-leaf-900/80 p-3 rounded-xl border border-leaf-400/40">
+          <span class="font-semibold text-leaf-300 block mb-1 flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th:</span>
+          <p id="gis-site-apa" class="text-leaf-100/95 leading-relaxed text-[12px]"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB: 3D ARTIFACTS ============ -->
+<section id="tab-artifact" class="flex-1 hidden flex-col space-y-4 tab-content">
+  <div class="glass-panel p-4 rounded-2xl">
+    <h2 class="text-lg font-serif font-semibold text-sand-100 flex items-center gap-2">
+      <i class="fa-solid fa-bone text-leaf-300"></i> 3D Artifacts · Skull, Spearpoint, Bone
+    </h2>
+    <p class="text-xs text-leaf-200/80 mb-3">Rotatable 3D models. All models are scientific reconstructions and generic anatomical references — not photographs of the Ancient One's remains.</p>
+    <div id="artifact-buttons" class="flex flex-wrap gap-2"></div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+    <div class="lg:col-span-3 glass-panel rounded-2xl relative overflow-hidden border border-leaf-300/20 shadow-2xl" style="min-height:520px">
+      <div id="artifact-container" class="absolute inset-0 cursor-grab active:cursor-grabbing" style="width:100%;height:100%"></div>
+      <div class="absolute top-4 left-4 glass-card px-3 py-1.5 rounded-xl text-xs text-leaf-300 font-semibold border border-leaf-300/30 z-10">
+        <i class="fa-solid fa-cube"></i> <span id="artifact-view-title">3D Viewer</span>
+      </div>
+    </div>
+    <div class="glass-panel p-5 rounded-2xl border border-leaf-300/20">
+      <div class="flex items-center justify-between pb-3 border-b border-leaf-300/20">
+        <h3 id="artifact-title" class="font-serif font-bold text-leaf-300 text-base">—</h3>
+        <span id="artifact-category" class="text-xs bg-leaf-700/60 text-leaf-200 px-2 py-0.5 rounded-full">—</span>
+      </div>
+      <p id="artifact-desc" class="mt-4 text-xs text-leaf-100/95 leading-relaxed"></p>
+      <div id="artifact-details" class="mt-3 space-y-2 text-xs"></div>
+      <div class="mt-3 bg-leaf-900/80 p-3 rounded-xl border border-leaf-400/40">
+        <span class="font-semibold text-leaf-300 block mb-1 text-xs flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th:</span>
+        <p id="artifact-apa" class="text-leaf-100/95 leading-relaxed text-[12px]"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB: DNA ============ -->
+<section id="tab-dna" class="flex-1 hidden flex-col space-y-4 tab-content">
+  <div class="glass-panel p-4 rounded-2xl">
+    <h2 class="text-lg font-serif font-semibold text-sand-100 flex items-center gap-2">
+      <i class="fa-solid fa-dna text-leaf-300"></i> DNA &amp; Origin · Genome Reveals Truth
+    </h2>
+    <p class="text-xs text-leaf-200/80 mb-3">3D molecular models and genome analysis.</p>
+    <div id="dna-buttons" class="flex flex-wrap gap-2"></div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+    <div class="lg:col-span-3 glass-panel rounded-2xl relative overflow-hidden border border-leaf-300/20 shadow-2xl" style="min-height:520px">
+      <div id="dna-container" class="absolute inset-0 cursor-grab active:cursor-grabbing" style="width:100%;height:100%"></div>
+      <div class="absolute top-4 left-4 glass-card px-3 py-1.5 rounded-xl text-xs text-leaf-300 font-semibold border border-leaf-300/30 z-10">
+        <i class="fa-solid fa-dna"></i> <span id="dna-view-title">3D Viewer</span>
+      </div>
+    </div>
+    <div class="glass-panel p-5 rounded-2xl border border-leaf-300/20">
+      <div class="flex items-center justify-between pb-3 border-b border-leaf-300/20">
+        <h3 id="dna-title" class="font-serif font-bold text-leaf-300 text-base">—</h3>
+        <span id="dna-category" class="text-xs bg-leaf-700/60 text-leaf-200 px-2 py-0.5 rounded-full">—</span>
+      </div>
+      <p id="dna-desc" class="mt-4 text-xs text-leaf-100/95 leading-relaxed"></p>
+      <div id="dna-details" class="mt-3 space-y-2 text-xs"></div>
+      <div class="mt-3 bg-leaf-900/80 p-3 rounded-xl border border-leaf-400/40">
+        <span class="font-semibold text-leaf-300 block mb-1 text-xs flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th:</span>
+        <p id="dna-apa" class="text-leaf-100/95 leading-relaxed text-[12px]"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB: RITUAL / CULTURE ============ -->
+<section id="tab-ritual" class="flex-1 hidden flex-col space-y-4 tab-content">
+  <div class="glass-panel p-4 rounded-2xl">
+    <h2 class="text-lg font-serif font-semibold text-sand-100 flex items-center gap-2">
+      <i class="fa-solid fa-hands-praying text-leaf-300"></i> Religion &amp; Culture · Sacred &amp; Sovereign
+    </h2>
+    <p class="text-xs text-leaf-200/80 mb-3">Sacred objects, reburial, and the spiritual relationship to the Ancient One.</p>
+    <div id="ritual-buttons" class="flex flex-wrap gap-2"></div>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1">
+    <div class="lg:col-span-3 glass-panel rounded-2xl relative overflow-hidden border border-leaf-300/20 shadow-2xl" style="min-height:520px">
+      <div id="ritual-container" class="absolute inset-0 cursor-grab active:cursor-grabbing" style="width:100%;height:100%"></div>
+      <div class="absolute top-4 left-4 glass-card px-3 py-1.5 rounded-xl text-xs text-leaf-300 font-semibold border border-leaf-300/30 z-10">
+        <i class="fa-solid fa-leaf"></i> <span id="ritual-view-title">3D Viewer</span>
+      </div>
+    </div>
+    <div class="glass-panel p-5 rounded-2xl border border-leaf-300/20">
+      <div class="flex items-center justify-between pb-3 border-b border-leaf-300/20">
+        <h3 id="ritual-title" class="font-serif font-bold text-leaf-300 text-base">—</h3>
+        <span id="ritual-category" class="text-xs bg-leaf-700/60 text-leaf-200 px-2 py-0.5 rounded-full">—</span>
+      </div>
+      <p id="ritual-desc" class="mt-4 text-xs text-leaf-100/95 leading-relaxed"></p>
+      <div id="ritual-details" class="mt-3 space-y-2 text-xs"></div>
+      <div class="mt-3 bg-leaf-900/80 p-3 rounded-xl border border-leaf-400/40">
+        <span class="font-semibold text-leaf-300 block mb-1 text-xs flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th:</span>
+        <p id="ritual-apa" class="text-leaf-100/95 leading-relaxed text-[12px]"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB: SIGNIFICANCE ============ -->
+<section id="tab-significance" class="flex-1 hidden flex-col space-y-4 tab-content">
+  <div class="glass-panel p-6 rounded-3xl">
+    <h2 class="text-xl font-serif font-semibold text-sand-100 flex items-center gap-2 mb-4">
+      <i class="fa-solid fa-scroll text-leaf-300"></i> Significance · History, Law, Legacy
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="font-serif font-bold text-leaf-300 text-base mb-3">Legal Timeline</h3>
+        <ul class="text-sm text-leaf-100/90 leading-relaxed space-y-2 list-disc list-inside">
+          <li><strong>1996:</strong> Discovery. Tribes claim him under NAGPRA.</li>
+          <li><strong>1996–2004:</strong> Eight scientists sue the government. Courts rule NAGPRA does not apply.</li>
+          <li><strong>2005–2006:</strong> Scientists study the bones at the Burke Museum.</li>
+          <li><strong>2015:</strong> Genome sequencing proves Native American ancestry.</li>
+          <li><strong>2016:</strong> US government determines the Ancient One is Native American; repatriation begins.</li>
+          <li><strong>2017:</strong> Reburial by the five claimant tribes.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-serif font-bold text-leaf-300 text-base mb-3">Key Figures</h3>
+        <ul class="text-sm text-leaf-100/90 space-y-2">
+          <li><strong>Will Thomas &amp; Dave Deacy</strong> — Discoverers (1996)</li>
+          <li><strong>James Chatters</strong> — Forensic anthropologist</li>
+          <li><strong>Dr. Douglas Owsley</strong> — Smithsonian bioarchaeologist</li>
+          <li><strong>Dr. Eske Willerslev</strong> — Geneticist (2015)</li>
+          <li><strong>Five Claimant Tribes</strong> — Colville, Nez Perce, Umatilla, Yakama, Wanapum</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-6 bg-leaf-900/80 p-4 rounded-2xl border border-leaf-400/40">
+      <span class="font-semibold text-leaf-300 block mb-2 text-sm flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th References:</span>
+      <p class="text-xs text-leaf-100/95 leading-relaxed italic mb-2">
+        Bureau of Indian Affairs. (2000). <em>Interior Department determines "Kennewick Man" remains to go to five Indian tribes</em>. U.S. Department of the Interior.
+      </p>
+      <p class="text-xs text-leaf-100/95 leading-relaxed italic mb-2">
+        Native American Graves Protection and Repatriation Act (NAGPRA), 25 U.S.C. § 3001 (1990).
+      </p>
+      <p class="text-xs text-leaf-100/95 leading-relaxed italic mb-2">
+        Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press.
+      </p>
+      <p class="text-xs text-leaf-100/95 leading-relaxed italic">
+        Rasmussen, M., et al. (2015). The ancestry and affiliations of Kennewick Man. <em>Nature</em>, <em>523</em>(7561), 455–458.
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="relative z-10 mt-auto py-6 px-4 text-center border-t border-leaf-300/20">
+  <div class="leaf-divider">
+    <div class="line"></div>
+    <i class="fa-solid fa-leaf text-leaf-400"></i>
+    <div class="line"></div>
+  </div>
+  <p class="text-xs text-leaf-200/70 mt-4">
+    <strong class="text-leaf-300">Prototype</strong> · Asia Khan, Hon. BA (McMaster University) · Behavioral UX Researcher &amp; Design Anthropologist
+  </p>
+  <p class="text-xs text-leaf-200/50 mt-2">
+    Built with respect for Indigenous sovereignty · No depiction of the Ancient One's remains · Works offline once loaded
+  </p>
+</footer>
+
+<!-- MODALS -->
+<div id="symbol-modal" class="modal-overlay" onclick="if(event.target===this) closeSymbolModal()">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeSymbolModal()">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    <img id="symbol-modal-img" src="" alt="">
+    <div class="modal-body">
+      <h3 id="symbol-modal-title" class="font-serif font-bold text-2xl text-sand-100 mb-3"></h3>
+      <p id="symbol-modal-desc" class="text-sm text-leaf-100/95 leading-relaxed"></p>
+      <div id="symbol-modal-extra" class="mt-4"></div>
+    </div>
+  </div>
+</div>
+
+<div id="bone-modal" class="modal-overlay" onclick="if(event.target===this) closeBoneModal()">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeBoneModal()">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    <div class="modal-body">
+      <div class="text-[10px] tracking-[.2em] uppercase text-leaf-300 font-bold mb-2">Anatomical Reference · Not the Ancient One</div>
+      <h3 id="bone-modal-title" class="font-serif font-bold text-2xl text-sand-100 mb-3"></h3>
+      <p id="bone-modal-desc" class="text-sm text-leaf-100/95 leading-relaxed mb-4"></p>
+      <div id="bone-modal-details" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"></div>
+      <div class="bg-leaf-900/80 p-3 rounded-xl border border-leaf-400/40">
+        <span class="font-semibold text-leaf-300 block mb-1 text-xs flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th:</span>
+        <p id="bone-modal-apa" class="text-xs text-sand-200/90 leading-relaxed italic"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="fact-modal" class="modal-overlay" onclick="if(event.target===this) closeFactModal()">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeFactModal()">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    <div class="modal-body">
+      <div id="fact-modal-icon" class="fact-modal-icon">🦴</div>
+      <div class="text-[10px] tracking-[.2em] uppercase text-leaf-300 font-bold mb-2 text-center">Key Fact</div>
+      <h3 id="fact-modal-title" class="font-serif font-bold text-2xl text-sand-100 mb-2 text-center"></h3>
+      <p id="fact-modal-subtitle" class="text-sm text-leaf-200/80 text-center italic mb-5"></p>
+      <p id="fact-modal-what" class="text-base text-leaf-100/95 leading-relaxed mb-4"></p>
+      <div id="fact-modal-why" class="bg-leaf-900/60 p-4 rounded-xl border-l-4 border-leaf-400 mb-4">
+        <div class="text-[10px] tracking-[.2em] uppercase text-leaf-300 font-bold mb-2">Why it matters</div>
+        <p class="text-sm text-leaf-100/95 leading-relaxed" id="fact-modal-why-text"></p>
+      </div>
+      <div class="bg-leaf-900/80 p-3 rounded-xl border border-leaf-400/40">
+        <span class="font-semibold text-leaf-300 block mb-1 text-xs flex items-center gap-1"><i class="fa-solid fa-book"></i> APA 7th:</span>
+        <p id="fact-modal-apa" class="text-xs text-sand-200/90 leading-relaxed italic"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   TAB SWITCH
+   ============================================================ */
+const TABS = ['home','discovery','gis','artifact','dna','ritual','significance'];
+const LAB_STATE = {};
+const LAB_INIT_FLAG = {};
+
+function switchTab(id){
+  TABS.forEach(t=>{
+    const tabEl = document.getElementById(`tab-${t}`);
+    if(tabEl) tabEl.classList.add('hidden');
+    const n=document.getElementById(`nav-${t}`);
+    if(n){ n.classList.remove('btn-active'); n.classList.add('bg-leaf-800/80'); }
+  });
+  const activeTab = document.getElementById(`tab-${id}`);
+  if(activeTab) activeTab.classList.remove('hidden');
+  const n=document.getElementById(`nav-${id}`);
+  if(n){ n.classList.remove('bg-leaf-800/80'); n.classList.add('btn-active'); }
+
+  setTimeout(()=>{
+    if(id==='gis' && !LAB_INIT_FLAG.gis){ initGIS(); LAB_INIT_FLAG.gis=true; }
+    else if(id==='gis' && gisMap){ gisMap.resize(); }
+    else if(['artifact','dna','ritual'].includes(id) && !LAB_INIT_FLAG[id]){
+      initLab(id); LAB_INIT_FLAG[id]=true;
+    }
+    else if(LAB_STATE[id]) resizeR(LAB_STATE[id].renderer, LAB_STATE[id].camera, document.getElementById(`${id}-container`));
+    else if(id==='home' && holoState && holoState.renderer){
+      const el = document.getElementById('holo-skeleton-container');
+      resizeHolo(el.clientWidth, el.clientHeight);
+    }
+  }, 80);
+}
+
+function resizeR(r,c,el){
+  if(!r||!el)return;
+  const w=el.clientWidth, h=el.clientHeight;
+  if(!w||!h)return;
+  r.setSize(w,h,false); c.aspect=w/h; c.updateProjectionMatrix();
+}
+
+function copyServerCmd(){
+  const cmd = document.getElementById('server-cmd').innerText;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.getElementById('copy-cmd-btn');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+    setTimeout(() => { btn.innerHTML = original; }, 2000);
+  }).catch(() => {});
+}
+
+/* ============================================================
+   VIEW MODE CONTROL
+   ============================================================ */
+let currentViewMode = 'tilt';
+let staticFlyoverInterval = null;
+let _flyoverInterval = null;
+
+function setViewMode(mode){
+  currentViewMode = mode;
+
+  ['topdown','tilt','flyover','oblique'].forEach(m => {
+    const btn = document.getElementById('view-' + m);
+    if(btn){
+      if(m === mode){
+        btn.classList.add('btn-active');
+        btn.classList.remove('bg-leaf-700');
+      } else {
+        btn.classList.remove('btn-active');
+        btn.classList.add('bg-leaf-700');
+      }
+    }
+  });
+
+  const labels = {
+    topdown: 'Top-Down Aerial',
+    tilt: '3D Tilt',
+    flyover: 'Flyover',
+    oblique: 'Oblique',
+    reset: 'Reset'
+  };
+  const labelEl = document.getElementById('view-mode-label');
+  if(labelEl) labelEl.innerText = labels[mode] || 'View';
+
+  if(gisMap){
+    if(mode === 'topdown'){
+      gisMap.easeTo({ pitch: 0, bearing: 0, duration: 1400 });
+    } else if(mode === 'tilt'){
+      gisMap.easeTo({ pitch: 55, bearing: -20, duration: 1400 });
+    } else if(mode === 'oblique'){
+      gisMap.easeTo({ pitch: 75, bearing: -40, duration: 1400 });
+    } else if(mode === 'flyover'){
+      gisMap.easeTo({ pitch: 70, bearing: -20, duration: 1200 });
+      startFlyover();
+      return;
+    } else if(mode === 'reset'){
+      stopFlyover();
+      gisTilted = false;
+      gisMap.flyTo({ center: [-119.1630, 46.2215], zoom: 10, pitch: 55, bearing: -20, duration: 2200 });
+      setTimeout(() => setViewMode('tilt'), 300);
+      return;
+    }
+    if(mode !== 'flyover'){ stopFlyover(); }
+  }
+
+  const wrapper = document.getElementById('static-map-wrapper');
+  if(wrapper){
+    if(mode === 'topdown'){
+      wrapper.style.transform = 'rotateX(0deg) scale(1)';
+    } else if(mode === 'tilt'){
+      wrapper.style.transform = 'rotateX(35deg) scale(1.05)';
+    } else if(mode === 'oblique'){
+      wrapper.style.transform = 'rotateX(55deg) scale(1.15)';
+    } else if(mode === 'flyover'){
+      wrapper.style.transform = 'rotateX(35deg) scale(1.05)';
+      startStaticFlyover();
+      return;
+    } else if(mode === 'reset'){
+      stopStaticFlyover();
+      wrapper.style.transform = 'rotateX(35deg) scale(1.05)';
+      setTimeout(() => setViewMode('tilt'), 300);
+      return;
+    }
+    if(mode !== 'flyover'){ stopStaticFlyover(); }
+  }
+}
+
+function startFlyover(){
+  if(!gisMap) return;
+  stopFlyover();
+  let bearing = gisMap.getBearing();
+  _flyoverInterval = setInterval(() => {
+    bearing += 0.15;
+    gisMap.rotateTo(bearing, { duration: 0 });
+  }, 50);
+}
+
+function stopFlyover(){
+  if(_flyoverInterval){
+    clearInterval(_flyoverInterval);
+    _flyoverInterval = null;
+  }
+}
+
+function startStaticFlyover(){
+  stopStaticFlyover();
+  const wrapper = document.getElementById('static-map-wrapper');
+  if(!wrapper) return;
+  let angle = 0;
+  staticFlyoverInterval = setInterval(() => {
+    angle += 0.15;
+    wrapper.style.transform = `rotateX(35deg) scale(1.05) rotateZ(${angle}deg)`;
+  }, 50);
+}
+
+function stopStaticFlyover(){
+  if(staticFlyoverInterval){
+    clearInterval(staticFlyoverInterval);
+    staticFlyoverInterval = null;
+  }
+}
+
+/* ============================================================
+   FACT MODAL DATA
+   ============================================================ */
+const FACT_DATA = {
+  bones: {
+    icon: "🦴",
+    title: "380+ Bones",
+    subtitle: "Recovered from the Columbia River",
+    what: "When the Ancient One was found in 1996, he was one of the most complete ancient skeletons ever discovered in North America. Out of a full human skeleton — which normally has 206 bones — archaeologists recovered more than 380 bone fragments. That means roughly 90% of his skeleton was preserved. This is extraordinarily rare. Most ancient skeletons disappear over thousands of years because bones decay, are scattered by animals, or are washed away by water.",
+    why: "A nearly complete skeleton lets scientists learn about a person's age, height, diet, injuries, and lifestyle. It's like a library of information written in bone. The more bones we have, the more we can understand about how this ancestor lived, what he ate, what injuries he survived, and how his body changed over 40+ years of life.",
+    apa: "Owsley, D. W., & Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&M University Press."
+  },
+  years: {
+    icon: "📅",
+    title: "8,500 Years",
+    subtitle: "Radiocarbon dated",
+    what: "Radiocarbon dating is a scientific method that measures how much carbon-14 (a natural radioactive element) is left in a once-living thing. All living things absorb carbon-14 while alive. After they die, it slowly decays at a known rate. By measuring the remaining carbon-14 in a bone sample, scientists can calculate roughly how long ago the person died. The Ancient One's bones were tested multiple times, placing him between 8,340 and 9,200 years old — about 8,500 years on average.",
+    why: "8,500 years is almost unimaginable. To put it in perspective: the pyramids of Egypt were built around 4,500 years ago. Written language is about 5,000 years old. The Ancient One lived thousands of years before any of that — when the Columbia Plateau was home to small, mobile communities of hunters, fishers, and gatherers. His age proves that Indigenous peoples have been in this region since time immemorial, exactly as oral histories say.",
+    apa: "Taylor, R. E., Kirner, D. L., Southon, J. R., & Chatters, J. C. (1998). Radiocarbon dating of the Kennewick skeleton. <em>Current Research in the Pleistocene</em>, <em>15</em>, 131–133."
+  },
+  river: {
+    icon: "🏞️",
+    title: "Columbia River",
+    subtitle: "Kennewick, Washington",
+    what: "The Columbia River is one of the largest rivers in North America. It flows over 1,200 miles from the Rocky Mountains in British Columbia, through Washington State, and empties into the Pacific Ocean. For thousands of years, it has been the lifeline of the Plateau peoples. It provided salmon — a sacred food — as well as water, transportation, and a corridor for trade and travel. The Ancient One was found in the shallows of Columbia Park in Kennewick, Washington, on July 28, 1996.",
+    why: "The Columbia River is not just a geographic feature — it is a relative, a provider, and a spiritual being in Plateau tribal traditions. Salmon return to it every year. The land around it holds the bones of ancestors. When tribal communities say 'we have always been here,' the Columbia River is one of the clearest proofs: their history, foodways, and ceremonies are woven into its banks and waters for thousands of years. His discovery on this river is not a coincidence — it is a homecoming.",
+    apa: "National Park Service. (n.d.). <em>Columbia River</em>. U.S. Department of the Interior."
+  },
+  native: {
+    icon: "🧬",
+    title: "Native American",
+    subtitle: "Confirmed by DNA",
+    what: "In 2015, a team of scientists led by Dr. Eske Willerslev at the University of Copenhagen extracted and sequenced DNA from a tiny 0.2-gram fragment of the Ancient One's finger bone. This was a world-first: no one had ever successfully recovered DNA from such an old skeleton from that region. The result was crystal clear: the Ancient One's genome is most closely related to modern Native Americans — especially the Confederated Tribes of the Colville Reservation, one of the five claimant tribes.",
+    why: "For nearly 20 years, some scientists argued that the Ancient One's skull shape suggested he was not Native American — that he came from Europe, Polynesia, or Japan. The DNA proved them wrong. It showed what tribes had been saying all along: he is their ancestor. The genome also revealed that Native American populations have been genetically continuous in the Americas for at least 8,500 years. This was not just a scientific finding — it was a legal and spiritual vindication for the claimant tribes, and it directly led to his repatriation and reburial in 2017.",
+    apa: "Rasmussen, M., Sikora, M., Albrechtsen, A., Korneliussen, T. S., Moreno-Mayar, J. V., Poznik, G. D., ... & Willerslev, E. (2015). The ancestry and affiliations of Kennewick Man. <em>Nature</em>, <em>523</em>(7561), 455–458."
+  }
+};
+
+function openFactModal(key){
+  const d = FACT_DATA[key];
+  if(!d) return;
+  document.getElementById('fact-modal-icon').innerText = d.icon;
+  document.getElementById('fact-modal-title').innerText = d.title;
+  document.getElementById('fact-modal-subtitle').innerText = d.subtitle;
+  document.getElementById('fact-modal-what').innerText = d.what;
+  document.getElementById('fact-modal-why-text').innerText = d.why;
+  document.getElementById('fact-modal-apa').innerHTML = d.apa;
+  document.getElementById('fact-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFactModal(){
+  document.getElementById('fact-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+/* ============================================================
+   TRIBAL SYMBOLISM MODAL
+   ============================================================ */
+const SYMBOL_DATA = {
+  cedar: {
+    title: "Cedar (Thuja plicata)",
+    desc: "Sacred to Plateau tribes. Used for purification, ceremony, and protection. The crackling of cedar chases away bad spirits. Cedar bark is woven into baskets and regalia.",
+    img: "cedar.png",
+    placeholderColor: "#2d5e2d",
+    extra: "<p class='text-xs text-leaf-200/80 italic'>Western red cedar is called the 'tree of life' by many Northwest Coast and Plateau peoples. Every part — bark, wood, roots, branches — has a traditional use.</p>"
+  },
+  camas: {
+    title: "Camas (Camassia quamash)",
+    desc: "The First Roots Ceremony honors camas and bitterroot, the two most important economic plants. Camas bulbs were harvested in spring and pit-cooked for days, turning sweet and storable.",
+    img: "camas.png",
+    placeholderColor: "#3d7a3d",
+    extra: "<p class='text-xs text-leaf-200/80 italic'>Camas meadows were carefully managed through controlled burns to increase yield. The bulbs were a staple carbohydrate and a trade good across the Plateau.</p>"
+  },
+  bitterroot: {
+    title: "Bitterroot (Lewisia rediviva)",
+    desc: "Bitterroot is a gift from the Creator, arriving first in spring to save the people from starving. The root is dug before flowering, then pit-cooked or dried for winter storage.",
+    img: "bitterroot.png",
+    placeholderColor: "#5c9a5c",
+    extra: "<p class='text-xs text-leaf-200/80 italic'>The bitterroot is the state flower of Montana. For Plateau tribes, it is a sacred first food, honored with ceremony and prayer before the first digging.</p>"
+  },
+  salmon: {
+    title: "Salmon (Oncorhynchus spp.)",
+    desc: "The salmon is a spiritual relative and the lifeline of the Columbia River. The First Salmon Ceremony honors the salmon's return each year, ensuring abundance for the people.",
+    img: "salmon.png",
+    placeholderColor: "#4a7c8c",
+    extra: "<p class='text-xs text-leaf-200/80 italic'>Salmon returns from the ocean to spawn in the same river where it was born. The Columbia River salmon runs once sustained one of the largest fisheries in the world.</p>"
+  }
+};
+
+function openSymbolModal(key){
+  const d = SYMBOL_DATA[key];
+  if(!d) return;
+  document.getElementById('symbol-modal-title').innerText = d.title;
+  document.getElementById('symbol-modal-desc').innerText = d.desc;
+  document.getElementById('symbol-modal-extra').innerHTML = d.extra;
+
+  const img = document.getElementById('symbol-modal-img');
+  img.alt = d.title;
+  img.onerror = function(){
+    this.onerror = null;
+    this.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+        <rect fill="${d.placeholderColor}" width="800" height="400"/>
+        <text x="400" y="200" text-anchor="middle" fill="#f5f0e6" font-family="Inter" font-size="32" font-weight="600">${d.title.split('(')[0].trim()}</text>
+        <text x="400" y="250" text-anchor="middle" fill="#b8d4b8" font-family="Inter" font-size="14">Save image as ${d.img}</text>
+      </svg>`
+    );
+  };
+  img.src = d.img;
+
+  document.getElementById('symbol-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSymbolModal(){
+  document.getElementById('symbol-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+/* ============================================================
+   BONE INFO MODAL
+   ============================================================ */
+const BONE_DATA = {
+  skull: {
+    title: "Skull (Cranium)",
+    desc: "The Ancient One's skull was long and narrow (dolichocephalic) with a large jaw and pronounced chin. These features initially puzzled scientists and led to controversial early interpretations about his ancestry.",
+    details: [
+      {label:"Age at Death", value:"~40–45 years old"},
+      {label:"Morphology", value:"Long, narrow skull"},
+      {label:"Key Feature", value:"Large jaw, pronounced chin"},
+      {label:"Significance", value:"Skull shape does not determine ancestry — DNA later proved Native American heritage"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  },
+  ribs: {
+    title: "Ribcage",
+    desc: "The ribcage shows evidence of healed fractures. The Ancient One survived multiple injuries during his lifetime, indicating a life of physical activity and resilience.",
+    details: [
+      {label:"Element", value:"Ribs"},
+      {label:"Pathology", value:"Healed rib fractures"},
+      {label:"Significance", value:"Evidence of traumatic injury and recovery"},
+      {label:"Lifestyle", value:"Active, physically demanding life"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  },
+  pelvis: {
+    title: "Pelvis (Hip Bone)",
+    desc: "A stone spearpoint (Cascade point) was embedded in the right hip bone. Crucially, the bone had healed around the point, proving the wound was not fatal and occurred years before his death. He was a survivor.",
+    details: [
+      {label:"Element", value:"Right ilium (pelvis)"},
+      {label:"Artifact", value:"Cascade spearpoint (embedded)"},
+      {label:"Pathology", value:"Healed penetrating trauma"},
+      {label:"Significance", value:"Proves survival — wound was not fatal"}
+    ],
+    apa: "Chatters, J. C. (2001). <em>Ancient encounters: Kennewick Man and the first Americans</em>. Simon &amp; Schuster."
+  },
+  spine: {
+    title: "Spine (Vertebral Column)",
+    desc: "The spine shows signs of degenerative changes consistent with an active lifestyle. The Ancient One stood about 5'8\" (1.73m) and weighed 70–75 kg.",
+    details: [
+      {label:"Stature", value:"~5'8\" (1.73m)"},
+      {label:"Weight", value:"70–75 kg"},
+      {label:"Condition", value:"Degenerative changes"},
+      {label:"Lifestyle", value:"Active, physically demanding"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  },
+  "arm-left": {
+    title: "Left Arm",
+    desc: "The arm bones show evidence of heavy use and possibly healed injuries. The Ancient One used his arms for hunting, fishing, and daily activities.",
+    details: [
+      {label:"Elements", value:"Humerus, radius, ulna"},
+      {label:"Condition", value:"Heavy use, possible healed injuries"},
+      {label:"Significance", value:"Evidence of active lifestyle"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  },
+  "arm-right": {
+    title: "Right Arm",
+    desc: "The right arm also shows signs of heavy use. The Ancient One survived multiple injuries, described as 'tough as nails' by researchers.",
+    details: [
+      {label:"Elements", value:"Humerus, radius, ulna"},
+      {label:"Condition", value:"Heavy use, healed fractures"},
+      {label:"Significance", value:"Survivor of multiple injuries"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  },
+  "leg-left": {
+    title: "Left Leg",
+    desc: "The leg bones provide information about stature and activity. The Ancient One walked and hunted across the Columbia Plateau landscape.",
+    details: [
+      {label:"Elements", value:"Femur, tibia, fibula"},
+      {label:"Stature", value:"~5'8\" (1.73m)"},
+      {label:"Significance", value:"Mobility and activity reconstruction"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  },
+  "leg-right": {
+    title: "Right Leg",
+    desc: "The right leg bones complete the picture of a physically active life. The Ancient One was a survivor, living with multiple healed injuries.",
+    details: [
+      {label:"Elements", value:"Femur, tibia, fibula"},
+      {label:"Stature", value:"~5'8\" (1.73m)"},
+      {label:"Significance", value:"Evidence of active, resilient life"}
+    ],
+    apa: "Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press."
+  }
+};
+
+function openBoneModal(key){
+  const d = BONE_DATA[key];
+  if(!d) return;
+  document.getElementById('bone-modal-title').innerText = d.title;
+  document.getElementById('bone-modal-desc').innerText = d.desc;
+  document.getElementById('bone-modal-details').innerHTML = d.details.map(detail => `
+    <div class="bg-leaf-900/60 p-3 rounded-lg border border-leaf-300/20">
+      <span class="font-semibold text-leaf-300 block text-[10px] uppercase tracking-wide mb-1">${detail.label}</span>
+      <p class="text-leaf-100/90 text-xs">${detail.value}</p>
+    </div>
+  `).join('');
+  document.getElementById('bone-modal-apa').innerHTML = d.apa;
+  document.getElementById('bone-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeBoneModal(){
+  document.getElementById('bone-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+/* ============================================================
+   HOLOGRAPHIC 3D SKELETON
+   ============================================================ */
+let holoState = null;
+let holoAutoRotate = true;
+
+function initHoloSkeleton(){
+  const container = document.getElementById('holo-skeleton');
+  if(!container) return;
+  const w = container.clientWidth || 800;
+  const h = container.clientHeight || 600;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 1000);
+  camera.position.set(0, 0, 12);
+
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  container.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0x8bb88b, 0.6));
+  const key = new THREE.DirectionalLight(0xdcebdc, 0.8); key.position.set(5, 10, 8); scene.add(key);
+  const rim = new THREE.PointLight(0x5c9a5c, 1.2, 30); rim.position.set(-8, 2, -6); scene.add(rim);
+  const fill = new THREE.PointLight(0x8bb88b, 0.6, 30); fill.position.set(8, -5, 6); scene.add(fill);
+
+  const boneMat = new THREE.MeshPhongMaterial({
+    color: 0x8bb88b, emissive: 0x2d5e2d, emissiveIntensity: 0.5,
+    transparent: true, opacity: 0.35, shininess: 80, wireframe: true
+  });
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x8bb88b, transparent: true, opacity: 0.15, side: THREE.BackSide
+  });
+
+  const skeleton = new THREE.Group();
+  scene.add(skeleton);
+  const clickable = [];
+
+  const skull = new THREE.Group();
+  const cranium = new THREE.Mesh(new THREE.SphereGeometry(0.85, 20, 20), boneMat);
+  cranium.scale.set(0.95, 1.05, 1.15);
+  cranium.userData.boneKey = 'skull'; clickable.push(cranium);
+  skull.add(cranium);
+  const craniumGlow = new THREE.Mesh(new THREE.SphereGeometry(0.95, 20, 20), glowMat);
+  craniumGlow.scale.set(0.95, 1.05, 1.15);
+  skull.add(craniumGlow);
+  const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.5, 0.7), boneMat);
+  jaw.position.set(0, -0.7, 0.25);
+  jaw.userData.boneKey = 'skull'; clickable.push(jaw);
+  skull.add(jaw);
+  const eyeMat = new THREE.MeshBasicMaterial({color:0x0a1a0a});
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), eyeMat); eyeL.position.set(-0.3, 0.05, 0.75); skull.add(eyeL);
+  const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), eyeMat); eyeR.position.set(0.3, 0.05, 0.75); skull.add(eyeR);
+  skull.position.set(0, 3.6, 0);
+  skeleton.add(skull);
+  const skullHalo = new THREE.Mesh(new THREE.RingGeometry(1.1, 1.2, 32), new THREE.MeshBasicMaterial({color:0x8bb88b, transparent:true, opacity:0.25, side:THREE.DoubleSide}));
+  skullHalo.position.set(0, 3.6, 0);
+  skullHalo.rotation.x = Math.PI/2;
+  skeleton.add(skullHalo);
+
+  for(let i=0; i<5; i++){
+    const v = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.12, 10), boneMat);
+    v.position.set(0, 2.95 - i*0.13, 0);
+    v.userData.boneKey = 'spine'; clickable.push(v);
+    skeleton.add(v);
+  }
+  for(let i=0; i<12; i++){
+    const y = 2.35 - i*0.18;
+    const v = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.11, 10), boneMat);
+    v.position.set(0, y, 0);
+    v.userData.boneKey = 'spine'; clickable.push(v);
+    skeleton.add(v);
+  }
+
+  for(let i=0; i<10; i++){
+    const t = i / 9;
+    const y = 2.2 - t * 1.9;
+    const ribRadius = 1.0 + Math.sin(t * Math.PI) * 0.9;
+    const rib = new THREE.Mesh(new THREE.TorusGeometry(ribRadius, 0.06, 6, 24, Math.PI), boneMat);
+    rib.rotation.x = Math.PI/2;
+    rib.rotation.z = Math.PI;
+    rib.position.set(0, y, 0.05);
+    rib.scale.set(1, 0.85, 1);
+    rib.userData.boneKey = 'ribs'; clickable.push(rib);
+    skeleton.add(rib);
+  }
+  const sternum = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.8, 0.1), boneMat);
+  sternum.position.set(0, 1.25, 0.95);
+  sternum.userData.boneKey = 'ribs'; clickable.push(sternum);
+  skeleton.add(sternum);
+
+  const clavGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.5, 8);
+  const clavL = new THREE.Mesh(clavGeo, boneMat);
+  clavL.rotation.z = Math.PI/2; clavL.position.set(-0.75, 2.5, 0.5);
+  clavL.userData.boneKey = 'ribs'; clickable.push(clavL); skeleton.add(clavL);
+  const clavR = new THREE.Mesh(clavGeo, boneMat);
+  clavR.rotation.z = Math.PI/2; clavR.position.set(0.75, 2.5, 0.5);
+  clavR.userData.boneKey = 'ribs'; clickable.push(clavR); skeleton.add(clavR);
+
+  const pelvis = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.2, 8, 32, Math.PI * 1.2), boneMat);
+  pelvis.rotation.x = Math.PI/2; pelvis.rotation.z = Math.PI * 0.9;
+  pelvis.position.set(0, -0.4, 0); pelvis.scale.set(1, 1.1, 1);
+  pelvis.userData.boneKey = 'pelvis'; clickable.push(pelvis); skeleton.add(pelvis);
+  const hipL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), boneMat);
+  hipL.position.set(-0.95, -0.7, 0);
+  hipL.userData.boneKey = 'pelvis'; clickable.push(hipL); skeleton.add(hipL);
+  const hipR = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), boneMat);
+  hipR.position.set(0.95, -0.7, 0);
+  hipR.userData.boneKey = 'pelvis'; clickable.push(hipR); skeleton.add(hipR);
+
+  function makeArm(side){
+    const sign = side === 'L' ? -1 : 1;
+    const key = 'arm-' + (side === 'L' ? 'left' : 'right');
+    const shoulder = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 10), boneMat);
+    shoulder.position.set(sign * 1.4, 2.4, 0);
+    shoulder.userData.boneKey = key; clickable.push(shoulder); skeleton.add(shoulder);
+    const humerus = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.09, 1.4, 8), boneMat);
+    humerus.position.set(sign * 1.55, 1.65, 0); humerus.rotation.z = sign * 0.12;
+    humerus.userData.boneKey = key; clickable.push(humerus); skeleton.add(humerus);
+    const elbow = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), boneMat);
+    elbow.position.set(sign * 1.7, 0.9, 0);
+    elbow.userData.boneKey = key; clickable.push(elbow); skeleton.add(elbow);
+    const foreArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 1.3, 8), boneMat);
+    foreArm.position.set(sign * 1.75, 0.2, 0); foreArm.rotation.z = sign * 0.04;
+    foreArm.userData.boneKey = key; clickable.push(foreArm); skeleton.add(foreArm);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), boneMat);
+    hand.position.set(sign * 1.78, -0.5, 0);
+    hand.userData.boneKey = key; clickable.push(hand); skeleton.add(hand);
+  }
+  makeArm('L'); makeArm('R');
+
+  function makeLeg(side){
+    const sign = side === 'L' ? -1 : 1;
+    const key = 'leg-' + (side === 'L' ? 'left' : 'right');
+    const femur = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.12, 1.6, 8), boneMat);
+    femur.position.set(sign * 0.55, -1.7, 0);
+    femur.userData.boneKey = key; clickable.push(femur); skeleton.add(femur);
+    const knee = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 10), boneMat);
+    knee.position.set(sign * 0.55, -2.55, 0);
+    knee.userData.boneKey = key; clickable.push(knee); skeleton.add(knee);
+    const tibia = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 1.5, 8), boneMat);
+    tibia.position.set(sign * 0.55, -3.35, 0);
+    tibia.userData.boneKey = key; clickable.push(tibia); skeleton.add(tibia);
+    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 0.4), boneMat);
+    foot.position.set(sign * 0.55, -4.15, 0.1);
+    foot.userData.boneKey = key; clickable.push(foot); skeleton.add(foot);
+  }
+  makeLeg('L'); makeLeg('R');
+
+  skeleton.position.y = -0.1;
+
+  const shellGeo = new THREE.CylinderGeometry(2.0, 2.0, 9, 16, 1, true);
+  const shell = new THREE.Mesh(shellGeo, new THREE.MeshBasicMaterial({
+    color: 0x8bb88b, transparent: true, opacity: 0.04, wireframe: true, side: THREE.DoubleSide
+  }));
+  scene.add(shell);
+
+  holoState = {
+    scene, camera, renderer, skeleton, clickable,
+    rotation: {x: 0, y: 0},
+    targetRotation: {x: 0, y: 0},
+    dragging: false,
+    prevMouse: {x:0, y:0},
+    container
+  };
+
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  let pointerMoved = false;
+
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    holoState.dragging = true;
+    holoState.prevMouse = {x: e.clientX, y: e.clientY};
+    pointerMoved = false;
+  });
+  window.addEventListener('pointerup', (e) => {
+    if(holoState.dragging && !pointerMoved){
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(holoState.clickable, false);
+      if(hits.length > 0){
+        const boneKey = hits[0].object.userData.boneKey;
+        if(boneKey) openBoneModal(boneKey);
+      }
+    }
+    holoState.dragging = false;
+  });
+  window.addEventListener('pointermove', (e) => {
+    if(!holoState.dragging) return;
+    const dx = e.clientX - holoState.prevMouse.x;
+    const dy = e.clientY - holoState.prevMouse.y;
+    if(Math.abs(dx) > 2 || Math.abs(dy) > 2) pointerMoved = true;
+    holoState.targetRotation.y += dx * 0.008;
+    holoState.targetRotation.x += dy * 0.008;
+    holoState.targetRotation.x = Math.max(-0.6, Math.min(0.6, holoState.targetRotation.x));
+    holoState.prevMouse = {x: e.clientX, y: e.clientY};
+  });
+
+  renderer.domElement.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    camera.position.z = Math.max(7, Math.min(20, camera.position.z + e.deltaY * 0.01));
+  }, {passive:false});
+
+  let time = 0;
+  function animate(){
+    requestAnimationFrame(animate);
+    time += 0.016;
+    if(holoAutoRotate && !holoState.dragging){
+      holoState.targetRotation.y += 0.005;
+    }
+    holoState.rotation.x += (holoState.targetRotation.x - holoState.rotation.x) * 0.08;
+    holoState.rotation.y += (holoState.targetRotation.y - holoState.rotation.y) * 0.08;
+    skeleton.rotation.x = holoState.rotation.x;
+    skeleton.rotation.y = holoState.rotation.y;
+    const pulse = 0.4 + Math.sin(time * 2) * 0.15;
+    boneMat.emissiveIntensity = pulse;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  new ResizeObserver(() => {
+    const nw = container.clientWidth;
+    const nh = container.clientHeight;
+    if(nw && nh) resizeHolo(nw, nh);
+  }).observe(container);
+  window.addEventListener('resize', () => {
+    const nw = container.clientWidth;
+    const nh = container.clientHeight;
+    if(nw && nh) resizeHolo(nw, nh);
+  });
+}
+
+function resizeHolo(w, h){
+  if(!holoState) return;
+  holoState.renderer.setSize(w, h, false);
+  holoState.camera.aspect = w / h;
+  holoState.camera.updateProjectionMatrix();
+}
+
+function toggleHoloAutoRotate(){
+  holoAutoRotate = !holoAutoRotate;
+  const btn = document.getElementById('holo-rotate-btn');
+  if(btn){
+    btn.innerHTML = holoAutoRotate
+      ? '<i class="fa-solid fa-rotate"></i> Pause Rotation'
+      : '<i class="fa-solid fa-play"></i> Resume Rotation';
+  }
+}
+
+function resetHoloView(){
+  if(!holoState) return;
+  holoState.targetRotation = {x: 0, y: 0};
+  holoState.camera.position.z = 12;
+  holoAutoRotate = true;
+  const btn = document.getElementById('holo-rotate-btn');
+  if(btn) btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Pause Rotation';
+}
+
+/* ============================================================
+   GIS
+   ============================================================ */
+const sites=[
+{name:"Columbia Park · Discovery Site (Kennewick, WA)",culture:"Paleoamerican · 8,500 BP",lat:46.2215,lng:-119.1630,
+desc:"The Ancient One was discovered on July 28, 1996, in the shallows of the Columbia River at Columbia Park, Kennewick, Washington.",
+context:"Recovered from the Columbia River shallows on federal land managed by the US Army Corps of Engineers. The skeleton comprised over 380 bones and fragments.",
+flora:["Bone collagen (radiocarbon dating)","Dental calculus (dietary analysis)","Stone spearpoint (Cascade type)"],
+artifacts:["Cranium (long, narrow skull)","Spearpoint (Cascade point)","380+ skeletal elements","Dental remains"],
+method:"Radiocarbon dating; CT scanning and rapid prototyping; DNA sequencing (2015).",
+directors:"Discovered by Will Thomas and Dave Deacy; analysis by James Chatters; scientific study led by Dr. Douglas Owsley; genome sequencing by Dr. Eske Willerslev.",
+apa:"Rasmussen, M., et al. (2015). The ancestry and affiliations of Kennewick Man. <em>Nature</em>, <em>523</em>(7561), 455–458.",
+apaShort:"Rasmussen et al. (2015). Nature, 523(7561), 455–458."},
+{name:"Burke Museum (Seattle, WA)",culture:"Research Repository · 1998–2016",lat:47.6603,lng:-122.3116,
+desc:"The Burke Museum served as the repository for the Ancient One's remains during the legal dispute.",
+context:"The remains were held at the Burke Museum while the legal case proceeded. Scientists conducted studies here between 2005 and 2006.",
+flora:["Not applicable (research facility)"],
+artifacts:["Ancient One remains (repatriated 2016)","Comparative collections"],
+method:"Bioarchaeological analysis; CT scanning; osteometric data collection.",
+directors:"Dr. Douglas Owsley (Smithsonian) led the scientific team; Burke Museum provided facilities.",
+apa:"Burke Museum. (n.d.). <em>Kennewick Man: The scientific investigation</em>. University of Washington.",
+apaShort:"Burke Museum. (n.d.)."},
+{name:"Confederated Tribes of the Colville Reservation",culture:"Claimant Tribe · Reburial 2017",lat:48.1093,lng:-118.9558,
+desc:"One of the five claimant tribes that fought for repatriation. DNA showed the Ancient One is most closely related to the Colville people.",
+context:"The Colville Reservation is home to the Colville, Okanogan, Lakes, Sanpoil, Nespelem, Palus, Wenatchi, Chelan, Entiat, Methow, Sinkiuse-Columbia, and Nez Perce tribes.",
+flora:["Traditional food plants (camas, bitterroot, berries)"],
+artifacts:["Cultural items associated with reburial ceremonies","Oral history records"],
+method:"Cultural affiliation determination under NAGPRA; DNA analysis (2015); reburial ceremony (2017).",
+directors:"Colville Tribal Council; Cultural Resources Department.",
+apa:"Confederated Tribes of the Colville Reservation. (n.d.). <em>The Ancient One</em>.",
+apaShort:"Confederated Tribes of the Colville Reservation. (n.d.)."}];
+
+function updateGIS(i){
+  const s=sites[i];
+  document.getElementById('gis-site-title').innerText=s.name;
+  document.getElementById('gis-site-culture').innerText=s.culture;
+  document.getElementById('gis-site-desc').innerText=s.desc;
+  document.getElementById('gis-site-context').innerText=s.context;
+  document.getElementById('gis-site-artifacts').innerHTML=s.artifacts.map(a=>`<li>${a}</li>`).join('');
+  document.getElementById('gis-site-flora').innerHTML=s.flora.map(f=>`<li>${f}</li>`).join('');
+  document.getElementById('gis-site-method').innerText=s.method;
+  document.getElementById('gis-site-directors').innerText=s.directors;
+  document.getElementById('gis-site-apa').innerHTML=s.apa;
+}
+
+let gisMap = null;
+let gisTilted = false;
+let userMarker = null;
+
+function initGIS(){
+  const el = document.getElementById('gis-map');
+  if(!el){ console.error('gis-map missing'); return; }
+  if(gisMap){ gisMap.resize(); return; }
+
+  if(location.protocol === 'file:'){
+    document.getElementById('gis-warning').style.display = 'flex';
+    document.getElementById('gis-static-fallback').style.display = 'block';
+    setViewMode('tilt');
+    return;
+  }
+
+  try {
+    gisMap = new maplibregl.Map({
+      container: 'gis-map',
+      style: {
+        version: 8,
+        sources: {
+          'satellite': {
+            type: 'raster',
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256, attribution: 'Imagery © Esri', maxzoom: 19
+          },
+          'labels': {
+            type: 'raster',
+            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
+            tileSize: 256, maxzoom: 19
+          },
+          'terrain-dem': {
+            type: 'raster-dem',
+            tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+            encoding: 'terrarium', tileSize: 256, maxzoom: 14
+          }
+        },
+        layers: [
+          { id: 'sat', type: 'raster', source: 'satellite' },
+          { id: 'labels', type: 'raster', source: 'labels', paint: { 'raster-opacity': 1 } }
+        ]
+      },
+      center: [-119.1630, 46.2215],
+      zoom: 10, pitch: 55, bearing: -20, maxPitch: 85, antialias: true
+    });
+  } catch(e){
+    console.error('Map init failed:', e);
+    document.getElementById('gis-warning').style.display = 'flex';
+    document.getElementById('gis-static-fallback').style.display = 'block';
+    setViewMode('tilt');
+    return;
+  }
+
+  gisMap.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+  gisMap.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-right');
+
+  gisMap.on('load', () => {
+    try { gisMap.setTerrain({ source: 'terrain-dem', exaggeration: 1.6 }); }
+    catch(e) { console.debug('Terrain unavailable:', e.message); }
+
+    sites.forEach((s, i) => {
+      const markerEl = document.createElement('div');
+      markerEl.className = 'leaf-marker';
+      markerEl.innerHTML = '🌿';
+      markerEl.title = s.name;
+
+      const popup = new maplibregl.Popup({
+        offset: 25, closeButton: true, maxWidth: '340px', className: 'site-popup'
+      }).setHTML(`
+        <div style="font-family:'Inter',sans-serif;">
+          <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#8bb88b;font-weight:700;margin-bottom:5px;">◈ ${s.culture}</div>
+          <div style="font-size:15px;font-weight:700;color:#f5f0e6;margin-bottom:8px;font-family:'Merriweather',serif;">${s.name}</div>
+          <div style="font-size:12px;color:#dcebdc;line-height:1.6;margin-bottom:10px;">${s.desc}</div>
+          <div style="border-top:1px solid rgba(139,184,139,.35);padding-top:8px;">
+            <div style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#8bb88b;font-weight:700;margin-bottom:4px;">APA 7TH</div>
+            <div style="font-size:11px;color:#f5f0e6;line-height:1.55;font-style:italic;">${s.apaShort}</div>
+          </div>
+        </div>
+      `);
+
+      new maplibregl.Marker({ element: markerEl, anchor: 'center' })
+        .setLngLat([s.lng, s.lat])
+        .setPopup(popup)
+        .addTo(gisMap);
+
+      markerEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        updateGIS(i);
+      });
+    });
+
+    setViewMode('tilt');
+  });
+
+  new ResizeObserver(() => gisMap && gisMap.resize()).observe(el);
+}
+
+function locateMe(){
+  if(!gisMap){ alert('Map is not loaded. Run from a local web server to enable GIS.'); return; }
+  const btn = document.getElementById('locate-btn');
+  if(!navigator.geolocation){ alert('Geolocation not supported.'); return; }
+  if(btn){ btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      gisMap.flyTo({ center: [lng, lat], zoom: 14, pitch: 60, duration: 2600 });
+      if(userMarker){ userMarker.remove(); }
+      const pinEl = document.createElement('div');
+      pinEl.className = 'user-pin-pulse';
+      pinEl.style.cssText = `width:20px;height:20px;border-radius:50%;background:#8bb88b;border:3px solid #f5f0e6;box-shadow:0 0 16px #8bb88b;`;
+      userMarker = new maplibregl.Marker({ element: pinEl, anchor: 'center' }).setLngLat([lng, lat]).addTo(gisMap);
+      if(btn){ btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Find Me'; }
+    },
+    (err) => {
+      alert('Could not get location: ' + err.message);
+      if(btn){ btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Find Me'; }
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function toggleTilt(){
+  setViewMode(gisTilted ? 'topdown' : 'tilt');
+  gisTilted = !gisTilted;
+  const btn = document.getElementById('tilt-btn');
+  if(btn) btn.innerHTML = gisTilted ? 'Flat View' : '3D Tilt';
+}
+
+function resetGlobeCamera(){
+  setViewMode('reset');
+}
+
+/* ============================================================
+   THREE.JS MODEL BUILDERS (for other tabs)
+   ============================================================ */
+function kennewickSkull(){
+  const g=new THREE.Group();
+  const boneMat=new THREE.MeshStandardMaterial({color:0xE8DCC8,roughness:0.6});
+  const cranium=new THREE.Mesh(new THREE.SphereGeometry(1.8,32,32),boneMat);
+  cranium.scale.set(1,0.9,1.3); g.add(cranium);
+  const jaw=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.2,1.8),boneMat);
+  jaw.position.set(0,-0.8,0.6); g.add(jaw);
+  const eyeMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,roughness:0.9});
+  const eye1=new THREE.Mesh(new THREE.SphereGeometry(0.35,16,16),eyeMat);
+  eye1.position.set(-0.6,0.1,1.4); g.add(eye1);
+  const eye2=new THREE.Mesh(new THREE.SphereGeometry(0.35,16,16),eyeMat);
+  eye2.position.set(0.6,0.1,1.4); g.add(eye2);
+  const nose=new THREE.Mesh(new THREE.ConeGeometry(0.25,0.5,8),eyeMat);
+  nose.position.set(0,-0.2,1.7); nose.rotation.x=Math.PI; g.add(nose);
+  const toothMat=new THREE.MeshStandardMaterial({color:0xFDFBF7,roughness:0.4});
+  for(let i=-2;i<=2;i++){
+    const tooth=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.25,0.1),toothMat);
+    tooth.position.set(i*0.3,-1.3,1.5); g.add(tooth);
+  }
+  return g;
+}
+function spearpoint(){
+  const g=new THREE.Group();
+  const stoneMat=new THREE.MeshStandardMaterial({color:0x6a5a4a,roughness:0.7});
+  const point=new THREE.Mesh(new THREE.ConeGeometry(0.4,2.5,6),stoneMat);
+  point.rotation.x=Math.PI; point.position.y=1.5; g.add(point);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.5,1.5,6),stoneMat);
+  base.position.y=-0.5; g.add(base);
+  return g;
+}
+function hipBone(){
+  const g=new THREE.Group();
+  const boneMat=new THREE.MeshStandardMaterial({color:0xE8DCC8,roughness:0.6});
+  const pelvis=new THREE.Mesh(new THREE.TorusGeometry(1.5,0.5,16,32,Math.PI),boneMat);
+  pelvis.rotation.x=Math.PI/2; g.add(pelvis);
+  const wound=new THREE.Mesh(new THREE.SphereGeometry(0.4,16,16),new THREE.MeshStandardMaterial({color:0xC8A55C,roughness:0.8}));
+  wound.position.set(1.2,0.3,0.5); g.add(wound);
+  const sp=spearpoint(); sp.scale.set(0.6,0.6,0.6); sp.position.set(1.4,0.5,0.6); sp.rotation.z=0.5; g.add(sp);
+  return g;
+}
+function femurBone(){
+  const g=new THREE.Group();
+  const boneMat=new THREE.MeshStandardMaterial({color:0xE8DCC8,roughness:0.6});
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.35,4,16),boneMat); g.add(shaft);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(0.6,16,16),boneMat); head.position.y=2.2; g.add(head);
+  const condyle1=new THREE.Mesh(new THREE.SphereGeometry(0.4,16,16),boneMat); condyle1.position.set(-0.4,-2.1,0); g.add(condyle1);
+  const condyle2=new THREE.Mesh(new THREE.SphereGeometry(0.4,16,16),boneMat); condyle2.position.set(0.4,-2.1,0); g.add(condyle2);
+  return g;
+}
+function ribBone(){
+  const g=new THREE.Group();
+  const boneMat=new THREE.MeshStandardMaterial({color:0xE8DCC8,roughness:0.6});
+  const rib=new THREE.Mesh(new THREE.TorusGeometry(2,0.2,8,32,Math.PI*0.8),boneMat);
+  rib.rotation.z=Math.PI*0.1; g.add(rib);
+  return g;
+}
+function dnaHelix(){
+  const g=new THREE.Group();
+  const strand1=new THREE.Group(); const strand2=new THREE.Group();
+  const baseMat1=new THREE.MeshStandardMaterial({color:0x2d5e2d,roughness:0.3,metalness:0.4});
+  const baseMat2=new THREE.MeshStandardMaterial({color:0x8b6b4a,roughness:0.3,metalness:0.4});
+  const rungMat=new THREE.MeshStandardMaterial({color:0x8bb88b,roughness:0.5,metalness:0.3});
+  const numBases=20;
+  for(let i=0;i<numBases;i++){
+    const y=(i-numBases/2)*0.4; const angle=i*0.5;
+    const x1=Math.cos(angle)*1.5, z1=Math.sin(angle)*1.5;
+    const x2=Math.cos(angle+Math.PI)*1.5, z2=Math.sin(angle+Math.PI)*1.5;
+    const s1=new THREE.Mesh(new THREE.SphereGeometry(0.2,16,16),baseMat1); s1.position.set(x1,y,z1); strand1.add(s1);
+    const s2=new THREE.Mesh(new THREE.SphereGeometry(0.2,16,16),baseMat2); s2.position.set(x2,y,z2); strand2.add(s2);
+    const rung=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,3,8),rungMat);
+    rung.position.set(0,y,0); rung.rotation.z=Math.PI/2; rung.rotation.y=-angle; g.add(rung);
+  }
+  g.add(strand1); g.add(strand2);
+  return g;
+}
+function chromosome(){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({color:0x2d5e2d,roughness:0.5,metalness:0.3});
+  const arm1=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,3,12),mat); arm1.position.y=1.5; g.add(arm1);
+  const arm2=new THREE.Mesh(new THREE.CylinderGeometry(0.3,0.5,3,12),mat); arm2.position.y=-1.5; g.add(arm2);
+  const centromere=new THREE.Mesh(new THREE.SphereGeometry(0.6,16,16),new THREE.MeshStandardMaterial({color:0x8b6b4a,roughness:0.4}));
+  g.add(centromere);
+  return g;
+}
+function migrationMap(){
+  const g=new THREE.Group();
+  const landMat=new THREE.MeshStandardMaterial({color:0x2d5e2d,roughness:0.8});
+  const waterMat=new THREE.MeshStandardMaterial({color:0x2a4854,roughness:0.3,transparent:true,opacity:0.7});
+  const base=new THREE.Mesh(new THREE.BoxGeometry(6,0.2,4),waterMat); g.add(base);
+  const asia=new THREE.Mesh(new THREE.BoxGeometry(2.5,0.3,2),landMat); asia.position.set(-2,0.2,-1); g.add(asia);
+  const na=new THREE.Mesh(new THREE.BoxGeometry(3,0.3,2.5),landMat); na.position.set(1.5,0.2,0.5); g.add(na);
+  const arrowMat=new THREE.MeshStandardMaterial({color:0x8bb88b,emissive:0x2d5e2d});
+  const arrow=new THREE.Mesh(new THREE.ConeGeometry(0.3,1,8),arrowMat); arrow.position.set(0,0.5,0); arrow.rotation.z=-Math.PI/2; g.add(arrow);
+  const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,1.5,8),arrowMat); shaft.position.set(-0.8,0.5,0); shaft.rotation.z=Math.PI/2; g.add(shaft);
+  return g;
+}
+function reburialBundle(){
+  const g=new THREE.Group();
+  const hideMat=new THREE.MeshStandardMaterial({color:0x8B6B4A,roughness:0.9});
+  const ropeMat=new THREE.MeshStandardMaterial({color:0x8bb88b,roughness:0.6});
+  const bundle=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.6,3,16),hideMat); g.add(bundle);
+  for(let i=-1;i<=1;i+=0.7){
+    const rope=new THREE.Mesh(new THREE.TorusGeometry(0.85,0.08,8,24),ropeMat);
+    rope.rotation.x=Math.PI/2; rope.position.y=i; g.add(rope);
+  }
+  const bough=new THREE.Mesh(new THREE.ConeGeometry(0.5,1.5,8),new THREE.MeshStandardMaterial({color:0x2d5e2d,roughness:0.8}));
+  bough.position.set(0,2,0); g.add(bough);
+  return g;
+}
+function cedarBough(){
+  const g=new THREE.Group();
+  const mat=new THREE.MeshStandardMaterial({color:0x2d5e2d,roughness:0.85});
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.25,3,8),new THREE.MeshStandardMaterial({color:0x4a3a2a,roughness:0.9}));
+  g.add(trunk);
+  for(let i=0;i<6;i++){
+    const angle=(i/6)*Math.PI*2;
+    const branch=new THREE.Mesh(new THREE.ConeGeometry(0.4,1.5,6),mat);
+    branch.position.set(Math.cos(angle)*0.5,0.5+i*0.3,Math.sin(angle)*0.5);
+    branch.rotation.z=Math.cos(angle)*0.8; branch.rotation.x=Math.sin(angle)*0.8;
+    g.add(branch);
+  }
+  return g;
+}
+function salmonModel(){
+  const g=new THREE.Group();
+  const bodyMat=new THREE.MeshStandardMaterial({color:0xA0431E,roughness:0.5});
+  const bellyMat=new THREE.MeshStandardMaterial({color:0xE8DCC8,roughness:0.6});
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,24,24),bodyMat);
+  body.scale.set(2.5,0.8,0.8); g.add(body);
+  const belly=new THREE.Mesh(new THREE.SphereGeometry(0.9,24,24),bellyMat);
+  belly.scale.set(2.2,0.5,0.7); belly.position.y=-0.3; g.add(belly);
+  const tail=new THREE.Mesh(new THREE.ConeGeometry(0.6,1.2,4),bodyMat);
+  tail.position.x=-2.5; tail.rotation.z=Math.PI/2; g.add(tail);
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(0.15,16,16),new THREE.MeshStandardMaterial({color:0x1a1a1a}));
+  eye.position.set(1.5,0.3,0.5); g.add(eye);
+  return g;
+}
+
+const LAB_DATA={
+  artifact:{models:[
+    {title:"Cranium (Long, Narrow Skull)",category:"Anatomical Reference",desc:"Scientific anatomical reconstruction of a long, narrow cranium. Not the Ancient One's actual skull — an educational reference model.",
+     details:[{label:"Morphology",value:"Dolichocephalic (long-headed) — reference model"},{label:"Features",value:"Large jaw, pronounced chin"},{label:"Significance",value:"Skull shape does not determine ancestry"}],
+     apa:"Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press.",build:kennewickSkull},
+    {title:"Cascade Spearpoint",category:"Lithic",desc:"A stone spearpoint embedded in the right hip bone. The bone healed around the point, proving the wound was not fatal.",
+     details:[{label:"Type",value:"Cascade point"},{label:"Material",value:"Volcanic stone"},{label:"Context",value:"Embedded in right ilium"}],
+     apa:"Chatters, J. C. (2001). <em>Ancient encounters: Kennewick Man and the first Americans</em>. Simon &amp; Schuster.",build:spearpoint},
+    {title:"Hip Bone (Healed Wound)",category:"Anatomical Reference",desc:"Scientific model showing a healed wound in the right ilium where the Cascade point was embedded. Educational reference — not the actual bone.",
+     details:[{label:"Element",value:"Right ilium (reference model)"},{label:"Pathology",value:"Healed penetrating trauma"},{label:"Significance",value:"Evidence of survival and resilience"}],
+     apa:"Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press.",build:hipBone},
+    {title:"Femur (Long Bone)",category:"Anatomical Reference",desc:"Generic femoral model used for stature and activity reconstruction. The Ancient One stood about 5'8\" (1.73m).",
+     details:[{label:"Element",value:"Femur (reference model)"},{label:"Stature",value:"~5'8\" (1.73m)"},{label:"Weight",value:"70–75 kg"}],
+     apa:"Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press.",build:femurBone},
+    {title:"Rib (Healed Fracture)",category:"Anatomical Reference",desc:"Scientific reference model showing a healed rib fracture. Evidence that the Ancient One survived multiple injuries.",
+     details:[{label:"Element",value:"Rib (reference model)"},{label:"Pathology",value:"Healed fracture"},{label:"Significance",value:"Evidence of traumatic injury and recovery"}],
+     apa:"Owsley, D. W., &amp; Jantz, R. L. (2014). <em>Kennewick Man: The scientific investigation of an ancient American skeleton</em>. Texas A&amp;M University Press.",build:ribBone}
+  ]},
+  dna:{models:[
+    {title:"DNA Double Helix",category:"Genetics",desc:"The double helix structure of DNA. In 2015, scientists sequenced the Ancient One's genome from a 0.2-gram finger bone fragment.",
+     details:[{label:"Sample",value:"0.2g finger bone"},{label:"Coverage",value:"~1× genome"},{label:"Significance",value:"Proved Native American ancestry"}],
+     apa:"Rasmussen, M., et al. (2015). The ancestry and affiliations of Kennewick Man. <em>Nature</em>, <em>523</em>(7561), 455–458.",build:dnaHelix},
+    {title:"Chromosome Model",category:"Genetics",desc:"Chromosomes carry genetic information. The Ancient One's genome showed genetic continuity in the Americas for at least 8,500 years.",
+     details:[{label:"Structure",value:"Chromosome with centromere"},{label:"Finding",value:"Genetic continuity"},{label:"Significance",value:"Confirms ancient roots"}],
+     apa:"Willerslev, E., &amp; Meltzer, D. J. (2015). Peopling of the Americas: A new chapter. <em>Nature</em>, <em>523</em>(7561), 417–418.",build:chromosome},
+    {title:"Migration Map",category:"Genetics",desc:"Schematic showing the migration route from Asia to the Americas. The Ancient One's genome confirms Native American ancestry.",
+     details:[{label:"Route",value:"Beringia land bridge"},{label:"Timing",value:"~15,000+ years ago"},{label:"Significance",value:"Peopling of the Americas"}],
+     apa:"Rasmussen, M., et al. (2015). The ancestry and affiliations of Kennewick Man. <em>Nature</em>, <em>523</em>(7561), 455–458.",build:migrationMap}
+  ]},
+  ritual:{models:[
+    {title:"Reburial Bundle",category:"Sacred Object",desc:"A traditional burial bundle used in reburial ceremonies. The Ancient One was reinterred in 2017 with traditional ceremonies.",
+     details:[{label:"Material",value:"Hide, rope, cedar"},{label:"Ceremony",value:"Reburial (2017)"},{label:"Significance",value:"Sacred duty to return the dead"}],
+     apa:"Confederated Tribes of the Colville Reservation. (n.d.). <em>The Ancient One</em>.",build:reburialBundle},
+    {title:"Cedar Bough",category:"Sacred Plant",desc:"Cedar is a sacred plant used in purification and burial ceremonies by Plateau tribes.",
+     details:[{label:"Species",value:"Western red cedar"},{label:"Use",value:"Purification, ceremony"},{label:"Significance",value:"Spiritual protection"}],
+     apa:"Confederated Tribes of the Umatilla Indian Reservation. (n.d.). <em>Kennewick Man / The Ancient One</em>.",build:cedarBough},
+    {title:"Salmon (Ceremonial Food)",category:"Sacred Food",desc:"Salmon is a sacred food and central to Plateau tribal culture. The Columbia River provided salmon for millennia.",
+     details:[{label:"Species",value:"Chinook/King salmon"},{label:"River",value:"Columbia River"},{label:"Significance",value:"Lifeline and spiritual relative"}],
+     apa:"Native American Graves Protection and Repatriation Act (NAGPRA), 25 U.S.C. § 3001 (1990).",build:salmonModel}
+  ]}
+};
+
+function initLab(key){
+  const cfg=LAB_DATA[key];
+  const el=document.getElementById(`${key}-container`);
+  if(!el){ console.error(key+' container missing'); return; }
+  const w = Math.max(el.clientWidth, 400);
+  const h = Math.max(el.clientHeight, 500);
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x0a1a0a);
+  const camera=new THREE.PerspectiveCamera(45,w/h,0.1,1000);
+  camera.position.set(0,0,10);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(w,h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x0a1a0a,1);
+  el.appendChild(renderer.domElement);
+  scene.add(new THREE.AmbientLight(0xffffff,0.9));
+  const l1=new THREE.DirectionalLight(0xfff5e6,1.4); l1.position.set(10,15,10); scene.add(l1);
+  const l2=new THREE.PointLight(0x3d7a3d,1.4,30); l2.position.set(-10,-10,5); scene.add(l2);
+  const l3=new THREE.PointLight(0x8bb88b,1.0,30); l3.position.set(10,-5,-8); scene.add(l3);
+  const state={scene,camera,renderer,current:null,drag:false,prev:{x:0,y:0},rx:0.3,ry:0.5};
+  LAB_STATE[key]=state;
+  const bc=document.getElementById(`${key}-buttons`);
+  bc.innerHTML='';
+  cfg.models.forEach((m,i)=>{
+    const b=document.createElement('button');
+    b.id=`${key}-btn-${i}`;
+    b.className="btn-nature px-3 py-1.5 text-[11px] bg-leaf-800/70 text-sand-200 rounded-lg border border-leaf-300/20 hover:border-leaf-300/50 transition-all";
+    b.innerText=m.title;
+    b.onclick=()=>loadLab(key,i);
+    bc.appendChild(b);
+  });
+  el.addEventListener('mousedown',e=>{state.drag=true;state.prev={x:e.clientX,y:e.clientY};});
+  el.addEventListener('mousemove',e=>{if(!state.drag)return;state.ry+=(e.clientX-state.prev.x)*0.008;state.rx+=(e.clientY-state.prev.y)*0.008;state.prev={x:e.clientX,y:e.clientY};});
+  window.addEventListener('mouseup',()=>{state.drag=false;});
+  loadLab(key,0);
+  (function loop(){
+    requestAnimationFrame(loop);
+    if(state.current){
+      state.current.rotation.y+=(state.ry-state.current.rotation.y)*0.06;
+      state.current.rotation.x+=(state.rx-state.current.rotation.x)*0.06;
+      if(!state.drag)state.ry+=0.006;
+    }
+    renderer.render(scene,camera);
+  })();
+  if(window.ResizeObserver)new ResizeObserver(()=>resizeR(renderer,camera,el)).observe(el);
+}
+
+function loadLab(key,index){
+  const cfg=LAB_DATA[key];
+  const state=LAB_STATE[key];
+  if(!state)return;
+  cfg.models.forEach((_,i)=>{
+    const b=document.getElementById(`${key}-btn-${i}`);
+    if(!b)return;
+    b.className=(i===index)
+      ? "btn-nature px-3 py-1.5 text-[11px] bg-leaf-500 text-sand-100 rounded-lg border border-leaf-300/50 transition-all"
+      : "btn-nature px-3 py-1.5 text-[11px] bg-leaf-800/70 text-sand-200 rounded-lg border border-leaf-300/20 hover:border-leaf-300/50 transition-all";
+  });
+  const m=cfg.models[index];
+  document.getElementById(`${key}-title`).innerText=m.title;
+  document.getElementById(`${key}-category`).innerText=m.category;
+  document.getElementById(`${key}-desc`).innerText=m.desc;
+  document.getElementById(`${key}-view-title`).innerText=m.title.toUpperCase();
+  document.getElementById(`${key}-apa`).innerHTML=m.apa;
+  document.getElementById(`${key}-details`).innerHTML=m.details.map(d=>`
+    <div class="bg-leaf-900/60 p-3 rounded-xl border border-leaf-300/20">
+      <span class="font-semibold text-leaf-300 block mb-1 text-[11px] uppercase tracking-wide">${d.label}</span>
+      <p class="text-leaf-100/90 leading-relaxed text-[13px]">${d.value}</p>
+    </div>`).join('');
+  if(state.current){
+    state.current.traverse(o=>{
+      if(o.geometry)o.geometry.dispose();
+      if(o.material)Array.isArray(o.material)?o.material.forEach(x=>x.dispose()):o.material.dispose();
+    });
+    state.scene.remove(state.current);
+  }
+  state.current=m.build();
+  state.scene.add(state.current);
+}
+
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    initHoloSkeleton();
+    initGIS();
+    LAB_INIT_FLAG.gis=true;
+    updateGIS(0);
+  },150);
+});
+
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape'){
+    closeSymbolModal();
+    closeBoneModal();
+    closeFactModal();
+  }
+});
+</script>
+</body>
+</html>
